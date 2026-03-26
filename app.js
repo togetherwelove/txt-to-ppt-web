@@ -239,10 +239,19 @@ function getPaddingValues() {
 }
 
 function updatePaddingOutputs(paddings = getPaddingValues()) {
-  elements.paddingTopValue.textContent = `${paddings.top}px`;
-  elements.paddingRightValue.textContent = `${paddings.right}px`;
-  elements.paddingBottomValue.textContent = `${paddings.bottom}px`;
-  elements.paddingLeftValue.textContent = `${paddings.left}px`;
+  elements.paddingTopValue.textContent = `${paddings.top}pt`;
+  elements.paddingRightValue.textContent = `${paddings.right}pt`;
+  elements.paddingBottomValue.textContent = `${paddings.bottom}pt`;
+  elements.paddingLeftValue.textContent = `${paddings.left}pt`;
+}
+
+function paddingPointsToInches(paddingPoints) {
+  return {
+    top: paddingPoints.top / 72,
+    right: paddingPoints.right / 72,
+    bottom: paddingPoints.bottom / 72,
+    left: paddingPoints.left / 72,
+  };
 }
 
 function updateColorPreview() {
@@ -297,10 +306,6 @@ function updateMockup(slides = getSlidesFromInput()) {
   updateColorPreview();
   elements.slideMockup.style.aspectRatio = aspectRatio;
   elements.slideMockup.style.backgroundColor = elements.backgroundColor.value;
-  elements.slideSafeZone.style.top = `${paddings.top}px`;
-  elements.slideSafeZone.style.right = `${paddings.right}px`;
-  elements.slideSafeZone.style.bottom = `${paddings.bottom}px`;
-  elements.slideSafeZone.style.left = `${paddings.left}px`;
   elements.slideMockupText.style.fontFamily = getSelectedFontFace();
   elements.slideMockupText.style.color = elements.textColor.value;
   elements.slideMockupText.style.textAlign = "center";
@@ -321,8 +326,19 @@ function updateMockup(slides = getSlidesFromInput()) {
     const pageSize = getCurrentPageSize();
     const mockupRect = elements.slideMockup.getBoundingClientRect();
     const pixelsPerInch = mockupRect.height / pageSize.height;
+    const paddingInches = paddingPointsToInches(paddings);
     const previewFontSizePx = Math.max(10, (fontSize / 72) * pixelsPerInch);
+    const previewPadding = {
+      top: paddingInches.top * pixelsPerInch,
+      right: paddingInches.right * pixelsPerInch,
+      bottom: paddingInches.bottom * pixelsPerInch,
+      left: paddingInches.left * pixelsPerInch,
+    };
 
+    elements.slideSafeZone.style.top = `${previewPadding.top}px`;
+    elements.slideSafeZone.style.right = `${previewPadding.right}px`;
+    elements.slideSafeZone.style.bottom = `${previewPadding.bottom}px`;
+    elements.slideSafeZone.style.left = `${previewPadding.left}px`;
     elements.slideMockupText.style.fontSize = `${previewFontSizePx}px`;
     elements.slideMockupText.style.padding = "0";
 
@@ -398,17 +414,13 @@ function buildSlidesFromInput() {
 }
 
 function getExportTextBox(pageSize) {
-  const mockupRect = elements.slideMockup.getBoundingClientRect();
-  const padding = getPaddingValues();
-
-  const widthRatio = pageSize.width / mockupRect.width;
-  const heightRatio = pageSize.height / mockupRect.height;
+  const padding = paddingPointsToInches(getPaddingValues());
 
   return {
-    x: padding.left * widthRatio,
-    y: padding.top * heightRatio,
-    w: Math.max(1, pageSize.width - (padding.left + padding.right) * widthRatio),
-    h: Math.max(1, pageSize.height - (padding.top + padding.bottom) * heightRatio),
+    x: padding.left,
+    y: padding.top,
+    w: Math.max(1, pageSize.width - padding.left - padding.right),
+    h: Math.max(1, pageSize.height - padding.top - padding.bottom),
   };
 }
 
