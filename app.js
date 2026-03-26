@@ -505,6 +505,12 @@ async function downloadPresentation() {
 elements.textFile.addEventListener("change", loadUploadedText);
 elements.backgroundFile.addEventListener("change", loadBackgroundImage);
 elements.loadSampleButton.addEventListener("click", () => {
+  if (elements.sourceText.value.trim()) {
+    const shouldOverwrite = window.confirm("이미 작성된 텍스트가 있습니다. 샘플로 덮어쓸까요?");
+    if (!shouldOverwrite) {
+      return;
+    }
+  }
   elements.sourceText.value = sampleText;
   saveSourceText();
   syncTitleWithToday();
