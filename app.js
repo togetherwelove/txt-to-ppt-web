@@ -3,9 +3,9 @@ const LINE_BREAK_DELIMITER = "/";
 const FONT_OPTIONS = [
   { label: "맑은 고딕", value: "Malgun Gothic" },
   { label: "SUIT", value: "SUIT" },
-  { label: "Noto Sans KR", value: "\"Noto Sans KR\"" },
-  { label: "Nanum Gothic", value: "\"Nanum Gothic\"" },
-  { label: "Apple SD Gothic Neo", value: "\"Apple SD Gothic Neo\"" },
+  { label: "Noto Sans KR", value: "Noto Sans KR" },
+  { label: "Nanum Gothic", value: "Nanum Gothic" },
+  { label: "Apple SD Gothic Neo", value: "Apple SD Gothic Neo" },
   { label: "Arial", value: "Arial" },
 ];
 const ALIGNMENT_LABELS = {
@@ -89,6 +89,23 @@ function setStatus(message, isError = false) {
 function sanitizeFileName(fileName) {
   const trimmed = (fileName || "generated-slides").trim();
   return trimmed.replace(/[<>:"/\\|?*\u0000-\u001F]/g, "-") || "generated-slides";
+}
+
+function getTodayTitle() {
+  return new Intl.DateTimeFormat("ko-KR", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date()).replace(/\.\s?/g, "-").replace(/-$/, "");
+}
+
+function syncTitleWithToday() {
+  elements.fileName.value = getTodayTitle();
+}
+
+function getSelectedFontFace() {
+  return (elements.fontFace.value || "Malgun Gothic").replace(/^["']|["']$/g, "").trim() || "Malgun Gothic";
 }
 
 function parseSlides(rawText) {
@@ -243,7 +260,7 @@ function updateMockup(slides = getSlidesFromInput()) {
   elements.slideSafeZone.style.right = `${paddings.right}px`;
   elements.slideSafeZone.style.bottom = `${paddings.bottom}px`;
   elements.slideSafeZone.style.left = `${paddings.left}px`;
-  elements.slideMockupText.style.fontFamily = elements.fontFace.value.trim() || "Malgun Gothic";
+  elements.slideMockupText.style.fontFamily = getSelectedFontFace();
   elements.slideMockupText.style.fontSize = `${Math.max(18, fontSize * 1.45)}px`;
   elements.slideMockupText.style.color = elements.textColor.value;
   elements.slideMockupText.style.textAlign = alignmentState.horizontal;
@@ -281,7 +298,7 @@ async function loadUploadedText() {
   try {
     const text = await readTextFile(file, TEXT_ENCODING);
     elements.sourceText.value = text;
-    elements.fileName.value = sanitizeFileName(file.name.replace(/\.[^.]+$/, ""));
+    syncTitleWithToday();
     updateFileLabels();
     buildSlidesFromInput();
     setStatus(`"${file.name}" 파일을 불러왔습니다.`);
@@ -359,15 +376,16 @@ async function downloadPresentation() {
   }
 
   const pptx = new PptxGenJS();
+  syncTitleWithToday();
   pptx.layout = elements.layout.value;
   pptx.author = "OpenAI Codex";
   pptx.company = "txt-to-ppt-main web extension";
   pptx.subject = "Converted from text to slides";
-  pptx.title = elements.fileName.value || "generated-slides";
+  pptx.title = getTodayTitle();
   pptx.lang = "ko-KR";
 
   const fontSize = Number(elements.fontSize.value) || 28;
-  const fontFace = elements.fontFace.value.trim() || "Malgun Gothic";
+  const fontFace = getSelectedFontFace();
   const textColor = elements.textColor.value.replace("#", "").toUpperCase();
   const backgroundColor = elements.backgroundColor.value.replace("#", "").toUpperCase();
   const pageSize = elements.layout.value === "LAYOUT_STANDARD"
@@ -414,7 +432,7 @@ async function downloadPresentation() {
     });
   });
 
-  const outputName = `${sanitizeFileName(elements.fileName.value)}.pptx`;
+  const outputName = `${sanitizeFileName(getTodayTitle())}.pptx`;
 
   try {
     setStatus("PPTX 파일을 생성하고 있습니다...");
@@ -430,7 +448,7 @@ elements.textFile.addEventListener("change", loadUploadedText);
 elements.backgroundFile.addEventListener("change", loadBackgroundImage);
 elements.loadSampleButton.addEventListener("click", () => {
   elements.sourceText.value = sampleText;
-  elements.fileName.value = "sample-slides";
+  syncTitleWithToday();
   buildSlidesFromInput();
 });
 elements.downloadButton.addEventListener("click", downloadPresentation);
@@ -474,6 +492,7 @@ elements.slideMockupText.addEventListener("pointermove", (event) => {
 });
 
 populateFontOptions();
+syncTitleWithToday();
 updateFileLabels();
 renderPreview([]);
 updateMockup();
