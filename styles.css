@@ -72,6 +72,7 @@ select {
   margin: 0;
   font-size: clamp(2rem, 4vw, 3.8rem);
   line-height: 1.02;
+  word-break: keep-all;
 }
 
 .hero-text {
