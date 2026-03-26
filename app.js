@@ -8,10 +8,11 @@ const FONT_OPTIONS = [
   { label: "Apple SD Gothic Neo", value: "Apple SD Gothic Neo" },
   { label: "Arial", value: "Arial" },
 ];
+const STORAGE_KEYS = {
+  sourceText: "txt-to-ppt:last-source-text",
+};
 const ALIGNMENT_LABELS = {
-  left: "왼쪽",
   center: "가운데",
-  right: "오른쪽",
   top: "상단",
   mid: "중앙",
   bottom: "하단",
@@ -108,6 +109,35 @@ function getSelectedFontFace() {
   return (elements.fontFace.value || "Malgun Gothic").replace(/^["']|["']$/g, "").trim() || "Malgun Gothic";
 }
 
+function saveSourceText() {
+  try {
+    localStorage.setItem(STORAGE_KEYS.sourceText, elements.sourceText.value || "");
+  } catch (error) {
+    console.warn("Failed to save source text", error);
+  }
+}
+
+function restoreSourceText() {
+  try {
+    const savedText = localStorage.getItem(STORAGE_KEYS.sourceText);
+    if (!savedText) {
+      return false;
+    }
+
+    elements.sourceText.value = savedText;
+    return true;
+  } catch (error) {
+    console.warn("Failed to restore source text", error);
+    return false;
+  }
+}
+
+function getCurrentPageSize() {
+  return elements.layout.value === "LAYOUT_STANDARD"
+    ? { width: 10, height: 7.5 }
+    : { width: 13.333, height: 7.5 };
+}
+
 function parseSlides(rawText) {
   const normalized = rawText.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
   return normalized.split("\n").map((line) => {
@@ -184,7 +214,19 @@ function getSlidesFromInput() {
 }
 
 function getMockupSlideText(slides = getSlidesFromInput()) {
-  return slides.find((slideText) => slideText.trim()) || "";
+  const normalizedSlides = slides
+    .map((slideText) => slideText.trim())
+    .filter(Boolean);
+
+  if (!normalizedSlides.length) {
+    return "";
+  }
+
+  return normalizedSlides.reduce((selectedSlide, currentSlide) => {
+    const selectedLongestLine = Math.max(...selectedSlide.split("\n").map((line) => line.trim().length), 0);
+    const currentLongestLine = Math.max(...currentSlide.split("\n").map((line) => line.trim().length), 0);
+    return currentLongestLine > selectedLongestLine ? currentSlide : selectedSlide;
+  });
 }
 
 function getPaddingValues() {
@@ -223,8 +265,8 @@ function updateAlignmentStatus() {
 }
 
 function applyTextPosition() {
-  elements.slideSafeZone.style.justifyContent =
-    alignmentState.horizontal === "left" ? "flex-start" : alignmentState.horizontal === "right" ? "flex-end" : "center";
+  alignmentState.horizontal = "center";
+  elements.slideSafeZone.style.justifyContent = "center";
   elements.slideSafeZone.style.alignItems =
     alignmentState.vertical === "top" ? "flex-start" : alignmentState.vertical === "bottom" ? "flex-end" : "center";
 }
@@ -235,10 +277,9 @@ function setAlignmentFromPointer(clientX, clientY) {
     return;
   }
 
-  const relativeX = (clientX - rect.left) / rect.width;
   const relativeY = (clientY - rect.top) / rect.height;
 
-  alignmentState.horizontal = relativeX < 1 / 3 ? "left" : relativeX > 2 / 3 ? "right" : "center";
+  alignmentState.horizontal = "center";
   alignmentState.vertical = relativeY < 1 / 3 ? "top" : relativeY > 2 / 3 ? "bottom" : "mid";
 
   applyTextPosition();
@@ -261,13 +302,11 @@ function updateMockup(slides = getSlidesFromInput()) {
   elements.slideSafeZone.style.bottom = `${paddings.bottom}px`;
   elements.slideSafeZone.style.left = `${paddings.left}px`;
   elements.slideMockupText.style.fontFamily = getSelectedFontFace();
-  elements.slideMockupText.style.fontSize = `${Math.max(18, fontSize * 1.45)}px`;
   elements.slideMockupText.style.color = elements.textColor.value;
-  elements.slideMockupText.style.textAlign = alignmentState.horizontal;
+  elements.slideMockupText.style.textAlign = "center";
   elements.slideMockupText.style.alignItems =
     alignmentState.vertical === "top" ? "flex-start" : alignmentState.vertical === "bottom" ? "flex-end" : "center";
-  elements.slideMockupText.style.justifyContent =
-    alignmentState.horizontal === "left" ? "flex-start" : alignmentState.horizontal === "right" ? "flex-end" : "center";
+  elements.slideMockupText.style.justifyContent = "center";
   elements.slideMockupText.textContent = previewText || "가사를 입력하면 여기에 표시됩니다";
 
   if (backgroundImageDataUrl) {
@@ -279,6 +318,14 @@ function updateMockup(slides = getSlidesFromInput()) {
   }
 
   requestAnimationFrame(() => {
+    const pageSize = getCurrentPageSize();
+    const mockupRect = elements.slideMockup.getBoundingClientRect();
+    const pixelsPerInch = mockupRect.height / pageSize.height;
+    const previewFontSizePx = Math.max(10, (fontSize / 72) * pixelsPerInch);
+
+    elements.slideMockupText.style.fontSize = `${previewFontSizePx}px`;
+    elements.slideMockupText.style.padding = "0";
+
     applyTextPosition();
     updateAlignmentStatus();
   });
@@ -298,6 +345,7 @@ async function loadUploadedText() {
   try {
     const text = await readTextFile(file, TEXT_ENCODING);
     elements.sourceText.value = text;
+    saveSourceText();
     syncTitleWithToday();
     updateFileLabels();
     buildSlidesFromInput();
@@ -388,9 +436,7 @@ async function downloadPresentation() {
   const fontFace = getSelectedFontFace();
   const textColor = elements.textColor.value.replace("#", "").toUpperCase();
   const backgroundColor = elements.backgroundColor.value.replace("#", "").toUpperCase();
-  const pageSize = elements.layout.value === "LAYOUT_STANDARD"
-    ? { width: 10, height: 7.5 }
-    : { width: 13.333, height: 7.5 };
+  const pageSize = getCurrentPageSize();
   const textBox = getExportTextBox(pageSize);
 
   slides.forEach((slideText) => {
@@ -448,11 +494,15 @@ elements.textFile.addEventListener("change", loadUploadedText);
 elements.backgroundFile.addEventListener("change", loadBackgroundImage);
 elements.loadSampleButton.addEventListener("click", () => {
   elements.sourceText.value = sampleText;
+  saveSourceText();
   syncTitleWithToday();
   buildSlidesFromInput();
 });
 elements.downloadButton.addEventListener("click", downloadPresentation);
-elements.sourceText.addEventListener("input", () => buildSlidesFromInput());
+elements.sourceText.addEventListener("input", () => {
+  saveSourceText();
+  buildSlidesFromInput();
+});
 elements.fontFace.addEventListener("change", () => updateMockup());
 elements.fontSize.addEventListener("input", () => updateMockup());
 elements.textColor.addEventListener("input", () => updateMockup());
@@ -493,10 +543,16 @@ elements.slideMockupText.addEventListener("pointermove", (event) => {
 
 populateFontOptions();
 syncTitleWithToday();
+const restoredSourceText = restoreSourceText();
 updateFileLabels();
-renderPreview([]);
-updateMockup();
+if (restoredSourceText) {
+  buildSlidesFromInput();
+} else {
+  renderPreview([]);
+  updateMockup();
+}
 window.addEventListener("resize", () => {
+  updateMockup(currentSlides.length ? currentSlides : getSlidesFromInput());
   if (!currentSlides.length || previewExpanded) {
     return;
   }
