@@ -1,30 +1,14 @@
-# txt-to-ppt Web Extension
+# txt-to-ppt-web
 
-이 프로젝트는 원래 PowerPoint VBA 매크로로 텍스트 파일을 슬라이드로 변환하던 도구를, 브라우저에서 바로 사용할 수 있는 웹 버전으로 확장한 저장소입니다.
+A web application that converts plain text files into PowerPoint presentations.
 
-## 실행 방법
+## Features
 
-가장 간단한 방법은 `index.html` 파일을 브라우저에서 여는 것입니다.
+- Convert text documents to PPTX format
+- Simple web-based interface
+- Automatic slide generation
+- Customizable formatting options
 
-1. `txt-to-ppt-main/index.html`을 브라우저에서 엽니다.
-2. 텍스트를 붙여 넣거나 `.txt` 파일을 업로드합니다.
-3. 필요하면 배경 이미지와 스타일 옵션을 조정합니다.
-4. `슬라이드 미리보기`로 분리 결과를 확인합니다.
-5. `PPTX 다운로드`를 눌러 프레젠테이션 파일을 생성합니다.
+## License
 
-## 텍스트 규칙
-
-예시:
-
-```text
-첫 번째 슬라이드 첫 줄/첫 번째 슬라이드 둘째 줄
-두 번째 슬라이드 내용
-(공백은 빈 슬라이드로 대체됩니다.)
-네 번째 슬라이드 내용/마지막 줄
-```
-
-동작 방식:
-
-- 입력 텍스트의 한 줄이 슬라이드 하나가 됩니다.
-- 같은 줄 안의 `/`는 줄바꿈으로 바뀌어 같은 슬라이드 안에 들어갑니다.
-- 빈 줄은 빈 슬라이드로 유지됩니다.
+MIT
