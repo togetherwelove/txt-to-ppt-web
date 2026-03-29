@@ -4,6 +4,7 @@ export const FONT_OPTIONS = [];
 export const STORAGE_KEYS = {
   sourceText: "txt-to-ppt:last-source-text",
   outputSettings: "txt-to-ppt:last-output-settings",
+  cachedFontOptions: "txt-to-ppt:cached-font-options",
 };
 
 export const TEXT_DECODER_CANDIDATES = [

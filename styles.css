@@ -269,6 +269,15 @@ select {
   font-size: 1.2rem;
 }
 
+.icon-button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.icon-button.is-loading {
+  animation: spin 0.9s linear infinite;
+}
+
 .field textarea {
   resize: vertical;
   line-height: 1.55;
@@ -513,6 +522,16 @@ button:hover {
 
 .slide-mockup-text.dragging {
   cursor: grabbing;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 900px) {

@@ -1,7 +1,6 @@
 export const state = {
   backgroundImageDataUrl: "",
   currentSlides: [],
-  cachedLocalFonts: [],
 };
 
 export const persistedAssetNames = {

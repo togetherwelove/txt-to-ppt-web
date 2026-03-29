@@ -2,7 +2,7 @@ import { sampleText } from "./config.js";
 import { elements } from "./dom.js";
 import { downloadPresentation, downloadSourceText } from "./exports.js";
 import { loadBackgroundImage, loadUploadedText, restoreUploadedAssets } from "./files.js";
-import { ensureAvailableFontOption, loadLocalFonts, populateFontOptions, upsertFontOption } from "./fonts.js";
+import { ensureAvailableFontOption, loadLocalFonts, populateFontOptions, restoreCachedFontOptions, upsertFontOption } from "./fonts.js";
 import { applyTextPosition, setAlignmentFromPointer, updateMockup } from "./mockup.js";
 import { ensureDefaultFileName, restoreOutputSettings, saveOutputSettings } from "./settings.js";
 import { getSlidesFromInput, parseSlides } from "./slides.js";
@@ -115,7 +115,10 @@ function bindEvents() {
 async function initializeApp() {
   populateFontOptions();
   await restoreUploadedAssets();
-  await loadLocalFonts(true);
+  const restoredCachedFonts = restoreCachedFontOptions();
+  if (!restoredCachedFonts) {
+    await loadLocalFonts(true);
+  }
   restoreOutputSettings();
 
   if (elements.fontFace.value && !Array.from(elements.fontFace.options).some((option) => option.value === elements.fontFace.value)) {
