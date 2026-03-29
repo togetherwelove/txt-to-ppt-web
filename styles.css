@@ -60,19 +60,11 @@ select {
   padding: 32px;
 }
 
-.eyebrow {
-  margin: 0 0 12px;
-  font-size: 0.86rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-
 .hero-copy h1 {
   margin: 0;
   line-height: 1.02;
   word-break: keep-all;
+  color: var(--accent);
 }
 
 .hero-text {
