@@ -368,12 +368,7 @@ select {
 
 .controls .action-row {
   justify-content: start;
-  margin-top: 0;
-  align-items: flex-start;
-}
-
-.controls .action-row .status {
-  width: 100%;
+  align-items: center;
 }
 
 button {
