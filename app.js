@@ -69,9 +69,6 @@ const elements = {
   loadSampleButton: document.querySelector("#loadSampleButton"),
   downloadButton: document.querySelector("#downloadButton"),
   statusMessage: document.querySelector("#statusMessage"),
-  previewList: document.querySelector("#previewList"),
-  previewSummary: document.querySelector("#previewSummary"),
-  previewVisibilityButton: document.querySelector("#previewVisibilityButton"),
   slideMockup: document.querySelector("#slideMockup"),
   slideSafeZone: document.querySelector("#slideSafeZone"),
   slideMockupText: document.querySelector("#slideMockupText"),
@@ -80,19 +77,10 @@ const elements = {
 
 let backgroundImageDataUrl = "";
 let currentSlides = [];
-let previewVisible = false;
 const alignmentState = {
   horizontal: "center",
   vertical: "top",
 };
-
-function updatePreviewVisibility() {
-  elements.previewList.classList.toggle("is-collapsed", !previewVisible);
-  elements.previewVisibilityButton.textContent = previewVisible
-    ? "\ubbf8\ub9ac\ubcf4\uae30 \uc228\uae30\uae30"
-    : "\ubbf8\ub9ac\ubcf4\uae30 \uc5f4\uae30";
-  elements.previewVisibilityButton.setAttribute("aria-expanded", String(previewVisible));
-}
 
 function populateFontOptions() {
   elements.fontFace.innerHTML = "";
@@ -181,42 +169,6 @@ function parseSlides(rawText) {
       .map((segment) => segment.trim())
       .join("\n")
       .trim();
-  });
-}
-
-function renderPreview(slides) {
-  currentSlides = slides;
-  elements.previewList.innerHTML = "";
-
-  if (!slides.length) {
-    previewVisible = false;
-    updatePreviewVisibility();
-    elements.previewSummary.textContent = "아직 생성된 슬라이드가 없습니다";
-    return;
-  }
-
-  updatePreviewVisibility();
-  elements.previewSummary.textContent = `${slides.length}\uac1c\uc758 \uc2ac\ub77c\uc774\ub4dc\uac00 \uc0dd\uc131\ub418\uc5c8\uc2b5\ub2c8\ub2e4`;
-
-  slides.forEach((slideText, index) => {
-    const card = document.createElement("article");
-    card.className = "slide-card";
-
-    const header = document.createElement("div");
-    header.className = "slide-card-header";
-
-    const title = document.createElement("p");
-    title.className = "slide-card-title";
-    title.textContent = `Slide ${index + 1}`;
-
-    header.append(title);
-
-    const body = document.createElement("div");
-    body.className = `slide-card-body${slideText ? "" : " slide-card-empty"}`;
-    body.textContent = slideText || "빈 슬라이드";
-
-    card.append(header, body);
-    elements.previewList.append(card);
   });
 }
 
@@ -552,13 +504,13 @@ function buildSlidesFromInput() {
   const rawText = elements.sourceText.value;
   if (!rawText.trim()) {
     setStatus("텍스트 내용을 먼저 입력해 주세요.", true);
-    renderPreview([]);
+    currentSlides = [];
     updateMockup([]);
     return [];
   }
 
   const slides = parseSlides(rawText);
-  renderPreview(slides);
+  currentSlides = slides;
   updateMockup(slides);
   setStatus(`${slides.length}개의 슬라이드를 준비했습니다.`);
   return slides;
@@ -682,10 +634,6 @@ elements.paddingTop.addEventListener("input", () => updateMockup());
 elements.paddingRight.addEventListener("input", () => updateMockup());
 elements.paddingBottom.addEventListener("input", () => updateMockup());
 elements.paddingLeft.addEventListener("input", () => updateMockup());
-elements.previewVisibilityButton.addEventListener("click", () => {
-  previewVisible = !previewVisible;
-  updatePreviewVisibility();
-});
 elements.slideMockupText.addEventListener("pointerdown", (event) => {
   event.preventDefault();
   elements.slideMockupText.classList.add("dragging");
@@ -712,19 +660,14 @@ elements.slideMockupText.addEventListener("pointermove", (event) => {
 
 populateFontOptions();
 ensureDefaultFileName();
-updatePreviewVisibility();
 const restoredSourceText = restoreSourceText();
 updateFileLabels();
 if (restoredSourceText) {
   buildSlidesFromInput();
 } else {
-  renderPreview([]);
+  currentSlides = [];
   updateMockup();
 }
 window.addEventListener("resize", () => {
   updateMockup(currentSlides.length ? currentSlides : getSlidesFromInput());
-  if (!currentSlides.length) {
-    return;
-  }
-  renderPreview(currentSlides);
 });
