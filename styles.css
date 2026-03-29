@@ -134,26 +134,30 @@ select {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
-.preview-toggle {
-  min-height: 110px;
-  padding: 14px;
-  border-radius: 18px;
-  background: rgba(187, 77, 45, 0.06);
+.preview .panel-header {
+  align-items: stretch;
+}
+
+.preview .panel-header p {
+  text-align: left;
+}
+
+.preview-meta {
+  width: auto;
+  justify-content: end;
+}
+
+.preview-visibility-button {
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(187, 77, 45, 0.08);
   color: var(--accent-deep);
-  border: 1px dashed rgba(187, 77, 45, 0.35);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  border: 1px solid rgba(187, 77, 45, 0.18);
   font-weight: 700;
-  letter-spacing: 0.02em;
-  transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
-}
-
-.preview-toggle:hover {
-  background: rgba(187, 77, 45, 0.12);
-  border-color: rgba(187, 77, 45, 0.55);
+  box-shadow: none;
 }
 
 .field-grid,
@@ -339,40 +343,81 @@ button:hover {
 }
 
 .preview-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.preview-list.is-collapsed {
+  display: none;
+}
+
+.preview-list::-webkit-scrollbar {
+  width: 10px;
+}
+
+.preview-list::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(143, 52, 26, 0.32);
+  background-clip: padding-box;
 }
 
 .slide-card {
-  min-height: 110px;
-  padding: 14px;
-  border-radius: 18px;
+  min-height: 112px;
+  border-radius: 22px;
   border: 1px solid rgba(16, 19, 26, 0.08);
-  background: linear-gradient(180deg, #1b2230, #0d1118);
+  background: linear-gradient(135deg, #192130, #0f141d 58%, #0c1017 100%);
   color: #fff;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  overflow: hidden;
+  box-shadow: 0 16px 30px rgba(15, 20, 29, 0.12);
 }
 
 .slide-card-header {
   display: flex;
   align-items: center;
+  justify-content: center;
+  padding: 12px 10px;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.12), transparent 46%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.slide-card-header::before {
+  content: none;
 }
 
 .slide-card-title {
   margin: 0;
-  font-size: 0.8rem;
-  letter-spacing: 0.06em;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.72);
+  color: rgba(255, 245, 238, 0.92);
+  text-align: center;
+  line-height: 1.25;
+  padding: 10px 8px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 6px 14px rgba(0, 0, 0, 0.12);
 }
 
 .slide-card-body {
+  min-width: 0;
+  padding: 16px 18px;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   line-height: 1.45;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   color: rgba(255, 255, 255, 0.9);
 }
 
@@ -419,7 +464,7 @@ button:hover {
   position: relative;
   width: min(100%, 900px);
   aspect-ratio: 16 / 9;
-  border-radius: 24px;
+  border-radius: 0;
   overflow: hidden;
   background: linear-gradient(180deg, #1b2230, #0d1118);
   border: 1px solid rgba(16, 19, 26, 0.12);
@@ -445,7 +490,7 @@ button:hover {
   position: absolute;
   inset: 60px 70px;
   border: 1px dashed rgba(255, 255, 255, 0.22);
-  border-radius: 18px;
+  border-radius: 0;
   z-index: 1;
   display: flex;
   align-items: center;
@@ -455,10 +500,11 @@ button:hover {
 
 .slide-mockup-text {
   position: relative;
-  max-width: 68%;
+  width: 100%;
+  max-width: none;
   padding: 0;
-  border-radius: 20px;
-  display: flex;
+  border-radius: 0;
+  display: block;
   white-space: pre-wrap;
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
   text-align: center;
@@ -493,6 +539,10 @@ button:hover {
   .preview-meta {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .slide-card-header {
+    padding: 10px 8px;
   }
 
   .file-field-row {

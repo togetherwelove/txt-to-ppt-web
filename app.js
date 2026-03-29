@@ -1,4 +1,3 @@
-const TEXT_ENCODING = "utf-8";
 const LINE_BREAK_DELIMITER = "/";
 const FONT_OPTIONS = [
   { label: "맑은 고딕", value: "Malgun Gothic" },
@@ -17,14 +16,30 @@ const ALIGNMENT_LABELS = {
   mid: "중앙",
   bottom: "하단",
 };
+const TEXT_DECODER_CANDIDATES = [
+  "utf-8",
+  "euc-kr",
+  "utf-16le",
+  "utf-16be",
+  "shift_jis",
+  "gb18030",
+  "big5",
+  "windows-1250",
+  "windows-1251",
+  "windows-1252",
+  "windows-1254",
+  "windows-1256",
+  "iso-8859-2",
+  "iso-8859-15",
+  "koi8-r",
+  "macintosh",
+];
 
-const sampleText = `세상이 주를 알기 원하네/그가 주신 참된 평안을
-모두가 누리길 원하네
-세상이 주를 알기 원하네/우리게 부으신 그 사랑이
-온 땅에 흐르길 원하네
+const sampleText = `첫 번째 줄은 첫 슬라이드입니다
+같은 줄에서 / 를 쓰면 줄바꿈이 됩니다
 /
-주가 주신 그 사랑으로
-우리가 서로 사랑할 때`;
+두 번째 슬라이드는 이렇게 분리됩니다
+텍스트 박스를 드래그해서/상하 정렬을 바꿔보세요`;
 
 const elements = {
   textFile: document.querySelector("#textFile"),
@@ -56,7 +71,7 @@ const elements = {
   statusMessage: document.querySelector("#statusMessage"),
   previewList: document.querySelector("#previewList"),
   previewSummary: document.querySelector("#previewSummary"),
-  previewToggle: document.querySelector("#previewToggle"),
+  previewVisibilityButton: document.querySelector("#previewVisibilityButton"),
   slideMockup: document.querySelector("#slideMockup"),
   slideSafeZone: document.querySelector("#slideSafeZone"),
   slideMockupText: document.querySelector("#slideMockupText"),
@@ -65,11 +80,19 @@ const elements = {
 
 let backgroundImageDataUrl = "";
 let currentSlides = [];
-let previewExpanded = false;
+let previewVisible = false;
 const alignmentState = {
   horizontal: "center",
   vertical: "top",
 };
+
+function updatePreviewVisibility() {
+  elements.previewList.classList.toggle("is-collapsed", !previewVisible);
+  elements.previewVisibilityButton.textContent = previewVisible
+    ? "\ubbf8\ub9ac\ubcf4\uae30 \uc228\uae30\uae30"
+    : "\ubbf8\ub9ac\ubcf4\uae30 \uc5f4\uae30";
+  elements.previewVisibilityButton.setAttribute("aria-expanded", String(previewVisible));
+}
 
 function populateFontOptions() {
   elements.fontFace.innerHTML = "";
@@ -88,7 +111,7 @@ function setStatus(message, isError = false) {
 }
 
 function sanitizeFileName(fileName) {
-  const trimmed = (fileName || "generated-slides").trim();
+  const trimmed = (fileName || "").trim().replace(/\.pptx$/i, "");
   return trimmed.replace(/[<>:"/\\|?*\u0000-\u001F]/g, "-") || "generated-slides";
 }
 
@@ -101,8 +124,16 @@ function getTodayTitle() {
   }).format(new Date()).replace(/\.\s?/g, "-").replace(/-$/, "");
 }
 
-function syncTitleWithToday() {
-  elements.fileName.value = getTodayTitle();
+function ensureDefaultFileName() {
+  const currentValue = (elements.fileName.value || "").trim();
+  if (!currentValue || currentValue === "generated-slides") {
+    elements.fileName.value = getTodayTitle();
+  }
+}
+
+function getOutputBaseName() {
+  const candidate = sanitizeFileName(elements.fileName.value || getTodayTitle());
+  return candidate || sanitizeFileName(getTodayTitle());
 }
 
 function getSelectedFontFace() {
@@ -158,21 +189,16 @@ function renderPreview(slides) {
   elements.previewList.innerHTML = "";
 
   if (!slides.length) {
+    previewVisible = false;
+    updatePreviewVisibility();
     elements.previewSummary.textContent = "아직 생성된 슬라이드가 없습니다";
-    elements.previewToggle.hidden = true;
     return;
   }
 
-  const visibleCount = previewExpanded ? slides.length : getCollapsedPreviewCount(slides.length);
-  const hiddenCount = Math.max(0, slides.length - visibleCount);
+  updatePreviewVisibility();
+  elements.previewSummary.textContent = `${slides.length}\uac1c\uc758 \uc2ac\ub77c\uc774\ub4dc\uac00 \uc0dd\uc131\ub418\uc5c8\uc2b5\ub2c8\ub2e4`;
 
-  elements.previewSummary.textContent = hiddenCount > 0
-    ? `${slides.length}개의 슬라이드 중 ${visibleCount}개 표시`
-    : `${slides.length}개의 슬라이드가 생성됩니다`;
-  elements.previewToggle.hidden = slides.length <= getCollapsedPreviewCount(slides.length);
-  elements.previewToggle.textContent = previewExpanded ? "... 접기" : `... 더보기 (${hiddenCount}개)`;
-
-  slides.slice(0, visibleCount).forEach((slideText, index) => {
+  slides.forEach((slideText, index) => {
     const card = document.createElement("article");
     card.className = "slide-card";
 
@@ -192,21 +218,6 @@ function renderPreview(slides) {
     card.append(header, body);
     elements.previewList.append(card);
   });
-
-  if (!elements.previewToggle.hidden) {
-    elements.previewList.append(elements.previewToggle);
-  }
-}
-
-function getCollapsedPreviewCount(totalSlides) {
-  const width = window.innerWidth;
-  if (width < 640) {
-    return Math.min(totalSlides, 2);
-  }
-  if (width < 1024) {
-    return Math.min(totalSlides, 4);
-  }
-  return Math.min(totalSlides, 6);
 }
 
 function getSlidesFromInput() {
@@ -309,10 +320,7 @@ function updateMockup(slides = getSlidesFromInput()) {
   elements.slideMockupText.style.fontFamily = getSelectedFontFace();
   elements.slideMockupText.style.color = elements.textColor.value;
   elements.slideMockupText.style.textAlign = "center";
-  elements.slideMockupText.style.alignItems =
-    alignmentState.vertical === "top" ? "flex-start" : alignmentState.vertical === "bottom" ? "flex-end" : "center";
-  elements.slideMockupText.style.justifyContent = "center";
-  elements.slideMockupText.textContent = previewText || "가사를 입력하면 여기에 표시됩니다";
+  elements.slideMockupText.textContent = previewText || "\ud14d\uc2a4\ud2b8\ub97c \uc785\ub825\ud558\uba74 \uc5ec\uae30\uc5d0 \ud45c\uc2dc\ub429\ub2c8\ub2e4";
 
   if (backgroundImageDataUrl) {
     elements.slideMockup.classList.add("has-image");
@@ -347,25 +355,170 @@ function updateMockup(slides = getSlidesFromInput()) {
   });
 }
 
-async function readTextFile(file, encoding) {
+function detectBomEncoding(bytes) {
+  if (bytes.length >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
+    return "utf-8";
+  }
+  if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xfe) {
+    return "utf-16le";
+  }
+  if (bytes.length >= 2 && bytes[0] === 0xfe && bytes[1] === 0xff) {
+    return "utf-16be";
+  }
+  return "";
+}
+
+function looksLikeUtf16(bytes, endianness) {
+  const sampleSize = Math.min(bytes.length, 512);
+  if (sampleSize < 4 || sampleSize % 2 !== 0) {
+    return false;
+  }
+
+  let zeroesOnEven = 0;
+  let zeroesOnOdd = 0;
+  let pairs = 0;
+
+  for (let index = 0; index < sampleSize - 1; index += 2) {
+    if (bytes[index] === 0x00) {
+      zeroesOnEven += 1;
+    }
+    if (bytes[index + 1] === 0x00) {
+      zeroesOnOdd += 1;
+    }
+    pairs += 1;
+  }
+
+  const evenRatio = zeroesOnEven / pairs;
+  const oddRatio = zeroesOnOdd / pairs;
+
+  return endianness === "le"
+    ? oddRatio > 0.3 && evenRatio < 0.1
+    : evenRatio > 0.3 && oddRatio < 0.1;
+}
+
+function decodeWithEncoding(buffer, encoding, fatal = false) {
+  try {
+    return new TextDecoder(encoding, fatal ? { fatal: true } : {}).decode(buffer);
+  } catch (error) {
+    return null;
+  }
+}
+
+function scoreDecodedText(text) {
+  if (text == null) {
+    return Number.NEGATIVE_INFINITY;
+  }
+
+  let score = 0;
+
+  for (const char of text) {
+    if (char === "\uFFFD") {
+      score -= 20;
+      continue;
+    }
+    if (char === "\u0000") {
+      score -= 20;
+      continue;
+    }
+    if (/[\u0001-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/u.test(char)) {
+      score -= 8;
+      continue;
+    }
+    if (/[가-힣ㄱ-ㅎㅏ-ㅣ]/u.test(char)) {
+      score += 4;
+      continue;
+    }
+    if (/[\u3040-\u30FF\u3400-\u9FFF]/u.test(char)) {
+      score += 3;
+      continue;
+    }
+    if (/[A-Za-z0-9]/u.test(char)) {
+      score += 1.5;
+      continue;
+    }
+    if (/\s/u.test(char)) {
+      score += 0.3;
+      continue;
+    }
+    if (/[.,!?'"():;\/\\\-_[\]{}@#$%^&*+=~`<>|]/u.test(char)) {
+      score += 0.8;
+      continue;
+    }
+    score += 0.2;
+  }
+
+  return score;
+}
+
+function detectTextEncoding(buffer) {
+  const bytes = new Uint8Array(buffer);
+  const bomEncoding = detectBomEncoding(bytes);
+  if (bomEncoding) {
+    return bomEncoding;
+  }
+
+  const strictUtf8 = decodeWithEncoding(buffer, "utf-8", true);
+  if (strictUtf8 !== null) {
+    return "utf-8";
+  }
+
+  const candidates = [];
+  if (looksLikeUtf16(bytes, "le")) {
+    candidates.push("utf-16le");
+  }
+  if (looksLikeUtf16(bytes, "be")) {
+    candidates.push("utf-16be");
+  }
+
+  TEXT_DECODER_CANDIDATES.forEach((encoding) => {
+    if (!candidates.includes(encoding)) {
+      candidates.push(encoding);
+    }
+  });
+
+  let bestEncoding = "utf-8";
+  let bestScore = Number.NEGATIVE_INFINITY;
+
+  candidates.forEach((encoding) => {
+    const decoded = decodeWithEncoding(buffer, encoding);
+    const score = scoreDecodedText(decoded);
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestEncoding = encoding;
+    }
+  });
+
+  return bestEncoding;
+}
+
+async function readTextFile(file) {
   const buffer = await file.arrayBuffer();
-  return new TextDecoder(encoding).decode(buffer);
+  const encoding = detectTextEncoding(buffer);
+  const text = decodeWithEncoding(buffer, encoding);
+
+  if (text == null) {
+    throw new Error(`Unsupported text encoding: ${encoding}`);
+  }
+
+  return { text, encoding };
 }
 
 async function loadUploadedText() {
   const file = elements.textFile.files?.[0];
   if (!file) {
+    updateFileLabels();
     return;
   }
 
   try {
-    const text = await readTextFile(file, TEXT_ENCODING);
+    const { text, encoding } = await readTextFile(file);
     elements.sourceText.value = text;
     saveSourceText();
-    syncTitleWithToday();
+    ensureDefaultFileName();
     updateFileLabels();
     buildSlidesFromInput();
-    setStatus(`"${file.name}" 파일을 불러왔습니다.`);
+    setStatus(`"${file.name}" 파일을 불러왔습니다. 감지된 인코딩: ${encoding}`);
   } catch (error) {
     console.error(error);
     setStatus("텍스트 파일을 읽는 중 문제가 발생했습니다.", true);
@@ -386,7 +539,7 @@ async function loadBackgroundImage() {
     backgroundImageDataUrl = String(reader.result || "");
     updateFileLabels();
     updateMockup();
-    setStatus(`배경 이미지 "${file.name}"를 적용할 준비가 되었습니다.`);
+    setStatus(`배경 이미지 "${file.name}"를 적용했습니다.`);
   };
   reader.onerror = () => {
     backgroundImageDataUrl = "";
@@ -398,7 +551,6 @@ async function loadBackgroundImage() {
 function buildSlidesFromInput() {
   const rawText = elements.sourceText.value;
   if (!rawText.trim()) {
-    previewExpanded = false;
     setStatus("텍스트 내용을 먼저 입력해 주세요.", true);
     renderPreview([]);
     updateMockup([]);
@@ -406,7 +558,6 @@ function buildSlidesFromInput() {
   }
 
   const slides = parseSlides(rawText);
-  previewExpanded = false;
   renderPreview(slides);
   updateMockup(slides);
   setStatus(`${slides.length}개의 슬라이드를 준비했습니다.`);
@@ -431,17 +582,17 @@ async function downloadPresentation() {
   }
 
   if (typeof PptxGenJS === "undefined") {
-    setStatus("PptxGenJS 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.", true);
+    setStatus("PptxGenJS 라이브러리를 불러오지 못했습니다. 네트워크 연결을 확인해 주세요.", true);
     return;
   }
 
   const pptx = new PptxGenJS();
-  syncTitleWithToday();
+  const outputBaseName = getOutputBaseName();
   pptx.layout = elements.layout.value;
   pptx.author = "OpenAI Codex";
-  pptx.company = "txt-to-ppt-main web extension";
+  pptx.company = "txt-to-ppt-web";
   pptx.subject = "Converted from text to slides";
-  pptx.title = getTodayTitle();
+  pptx.title = outputBaseName;
   pptx.lang = "ko-KR";
 
   const fontSize = Number(elements.fontSize.value) || 28;
@@ -490,7 +641,7 @@ async function downloadPresentation() {
     });
   });
 
-  const outputName = `${sanitizeFileName(getTodayTitle())}.pptx`;
+  const outputName = `${outputBaseName}.pptx`;
 
   try {
     setStatus("PPTX 파일을 생성하고 있습니다...");
@@ -511,9 +662,10 @@ elements.loadSampleButton.addEventListener("click", () => {
       return;
     }
   }
+
   elements.sourceText.value = sampleText;
   saveSourceText();
-  syncTitleWithToday();
+  ensureDefaultFileName();
   buildSlidesFromInput();
 });
 elements.downloadButton.addEventListener("click", downloadPresentation);
@@ -530,11 +682,10 @@ elements.paddingTop.addEventListener("input", () => updateMockup());
 elements.paddingRight.addEventListener("input", () => updateMockup());
 elements.paddingBottom.addEventListener("input", () => updateMockup());
 elements.paddingLeft.addEventListener("input", () => updateMockup());
-elements.previewToggle.addEventListener("click", () => {
-  previewExpanded = !previewExpanded;
-  renderPreview(currentSlides);
+elements.previewVisibilityButton.addEventListener("click", () => {
+  previewVisible = !previewVisible;
+  updatePreviewVisibility();
 });
-
 elements.slideMockupText.addEventListener("pointerdown", (event) => {
   event.preventDefault();
   elements.slideMockupText.classList.add("dragging");
@@ -560,7 +711,8 @@ elements.slideMockupText.addEventListener("pointermove", (event) => {
 });
 
 populateFontOptions();
-syncTitleWithToday();
+ensureDefaultFileName();
+updatePreviewVisibility();
 const restoredSourceText = restoreSourceText();
 updateFileLabels();
 if (restoredSourceText) {
@@ -571,7 +723,7 @@ if (restoredSourceText) {
 }
 window.addEventListener("resize", () => {
   updateMockup(currentSlides.length ? currentSlides : getSlidesFromInput());
-  if (!currentSlides.length || previewExpanded) {
+  if (!currentSlides.length) {
     return;
   }
   renderPreview(currentSlides);
