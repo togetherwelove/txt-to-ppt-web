@@ -1,9 +1,7 @@
 export const state = {
   backgroundImageDataUrl: "",
   currentSlides: [],
-  assetDbPromise: null,
   cachedLocalFonts: [],
-  cachedLocalFontUrl: "",
 };
 
 export const persistedAssetNames = {

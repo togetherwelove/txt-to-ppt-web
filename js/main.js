@@ -2,14 +2,7 @@ import { sampleText } from "./config.js";
 import { elements } from "./dom.js";
 import { downloadPresentation, downloadSourceText } from "./exports.js";
 import { loadBackgroundImage, loadUploadedText, restoreUploadedAssets } from "./files.js";
-import {
-  ensureAvailableFontOption,
-  loadLocalFonts,
-  persistSelectedLocalFont,
-  populateFontOptions,
-  restoreSavedLocalFont,
-  upsertFontOption,
-} from "./fonts.js";
+import { ensureAvailableFontOption, loadLocalFonts, populateFontOptions, upsertFontOption } from "./fonts.js";
 import { applyTextPosition, setAlignmentFromPointer, updateMockup } from "./mockup.js";
 import { ensureDefaultFileName, restoreOutputSettings, saveOutputSettings } from "./settings.js";
 import { getSlidesFromInput, parseSlides } from "./slides.js";
@@ -74,7 +67,6 @@ function bindEvents() {
   });
 
   elements.fontFace.addEventListener("change", () => {
-    void persistSelectedLocalFont(elements.fontFace.value);
     saveOutputSettings();
     updateMockup(state.currentSlides);
   });
@@ -123,12 +115,11 @@ function bindEvents() {
 async function initializeApp() {
   populateFontOptions();
   await restoreUploadedAssets();
-  await restoreSavedLocalFont();
   await loadLocalFonts(true);
   restoreOutputSettings();
 
   if (elements.fontFace.value && !Array.from(elements.fontFace.options).some((option) => option.value === elements.fontFace.value)) {
-    upsertFontOption(elements.fontFace.value, `${elements.fontFace.value} (저장됨)`);
+    upsertFontOption(elements.fontFace.value, elements.fontFace.value);
   }
 
   ensureAvailableFontOption();

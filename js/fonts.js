@@ -1,7 +1,6 @@
-import { ASSET_KEYS, FONT_OPTIONS } from "./config.js";
+import { FONT_OPTIONS } from "./config.js";
 import { elements } from "./dom.js";
 import { saveOutputSettings } from "./settings.js";
-import { loadAsset, persistAssetSafely } from "./storage.js";
 import { state } from "./state.js";
 import { setStatus } from "./ui.js";
 
@@ -59,62 +58,6 @@ export function ensureAvailableFontOption() {
   return fallbackFont;
 }
 
-function clearCachedLocalFontFace() {
-  if (state.cachedLocalFontUrl) {
-    URL.revokeObjectURL(state.cachedLocalFontUrl);
-    state.cachedLocalFontUrl = "";
-  }
-}
-
-export function registerCachedLocalFont(fontName, blob, shouldSelect = false) {
-  clearCachedLocalFontFace();
-  state.cachedLocalFontUrl = URL.createObjectURL(blob);
-
-  let styleTag = document.querySelector("#cachedLocalFontStyle");
-  if (!styleTag) {
-    styleTag = document.createElement("style");
-    styleTag.id = "cachedLocalFontStyle";
-    document.head.append(styleTag);
-  }
-
-  styleTag.textContent = `@font-face {
-  font-family: "${fontName}";
-  src: url("${state.cachedLocalFontUrl}");
-  font-display: swap;
-}`;
-
-  upsertFontOption(fontName, `${fontName} (저장됨)`);
-  if (shouldSelect) {
-    elements.fontFace.value = fontName;
-  }
-}
-
-export async function restoreSavedLocalFont() {
-  try {
-    const savedLocalFont = await loadAsset(ASSET_KEYS.localFont);
-    if (savedLocalFont?.name && savedLocalFont.blob instanceof Blob) {
-      registerCachedLocalFont(savedLocalFont.name, savedLocalFont.blob, false);
-    }
-  } catch (error) {
-    console.warn("Failed to restore cached local font", error);
-  }
-}
-
-export async function persistSelectedLocalFont(fontName) {
-  const matchingFont = state.cachedLocalFonts.find((fontData) => fontData.family === fontName);
-  if (!matchingFont || typeof matchingFont.blob !== "function") {
-    return;
-  }
-
-  try {
-    const blob = await matchingFont.blob();
-    await persistAssetSafely(ASSET_KEYS.localFont, { name: fontName, blob });
-    registerCachedLocalFont(fontName, blob, false);
-  } catch (error) {
-    console.warn("Failed to persist selected local font", error);
-  }
-}
-
 export async function loadLocalFonts(silent = false) {
   if (!("queryLocalFonts" in window)) {
     ensureAvailableFontOption();
@@ -137,9 +80,9 @@ export async function loadLocalFonts(silent = false) {
     });
 
     ensureAvailableFontOption();
-    saveOutputSettings();
 
     if (!silent) {
+      saveOutputSettings();
       setStatus(`설치 폰트 ${uniqueFamilies.length}개를 불러왔습니다.`);
     }
   } catch (error) {

@@ -1,11 +1,10 @@
-import { ASSET_KEYS } from "./config.js";
 import { elements } from "./dom.js";
 import { ensureAvailableFontOption } from "./fonts.js";
 import { updateMockup } from "./mockup.js";
 import { ensureDefaultFileName } from "./settings.js";
 import { readTextFile } from "./slides.js";
 import { persistedAssetNames, state } from "./state.js";
-import { deleteAsset, loadAsset, persistAssetSafely, readFileAsDataUrl, restoreSourceText, saveSourceText } from "./storage.js";
+import { readFileAsDataUrl, restoreSourceText, saveSourceText } from "./storage.js";
 import { setStatus, updateFileLabels } from "./ui.js";
 
 export async function loadUploadedText(onSourceChange) {
@@ -29,7 +28,6 @@ export async function loadUploadedText(onSourceChange) {
     persistedAssetNames.textFile = file.name;
     elements.sourceText.value = text;
     saveSourceText();
-    await deleteAsset("text-file").catch(() => {});
 
     ensureAvailableFontOption();
     ensureDefaultFileName();
@@ -56,12 +54,6 @@ export async function loadBackgroundImage() {
     state.backgroundImageDataUrl = await readFileAsDataUrl(file);
     persistedAssetNames.backgroundFile = file.name;
 
-    await persistAssetSafely(ASSET_KEYS.backgroundImage, {
-      name: file.name,
-      type: file.type || "image/*",
-      blob: file,
-    });
-
     updateFileLabels();
     updateMockup(state.currentSlides);
     setStatus(`배경 이미지 "${file.name}"를 적용했습니다.`);
@@ -73,16 +65,5 @@ export async function loadBackgroundImage() {
 }
 
 export async function restoreUploadedAssets() {
-  try {
-    const savedBackgroundImage = await loadAsset(ASSET_KEYS.backgroundImage);
-    restoreSourceText();
-    await deleteAsset("text-file").catch(() => {});
-
-    if (savedBackgroundImage?.name && savedBackgroundImage.blob instanceof Blob) {
-      persistedAssetNames.backgroundFile = savedBackgroundImage.name;
-      state.backgroundImageDataUrl = await readFileAsDataUrl(savedBackgroundImage.blob);
-    }
-  } catch (error) {
-    console.warn("Failed to restore uploaded assets", error);
-  }
+  restoreSourceText();
 }
