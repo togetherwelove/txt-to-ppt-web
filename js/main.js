@@ -1,7 +1,7 @@
 import { sampleText } from "./config.js";
 import { elements } from "./dom.js";
 import { downloadPresentation, downloadSourceText } from "./exports.js";
-import { loadBackgroundImage, loadUploadedText, restoreUploadedAssets } from "./files.js";
+import { loadBackgroundImage, loadUploadedText } from "./files.js";
 import { ensureAvailableFontOption, loadLocalFonts, populateFontOptions, restoreCachedFontOptions, upsertFontOption } from "./fonts.js";
 import { applyTextPosition, setAlignmentFromPointer, updateMockup } from "./mockup.js";
 import { ensureDefaultFileName, restoreOutputSettings, saveOutputSettings } from "./settings.js";
@@ -45,7 +45,6 @@ function bindEvents() {
 
     elements.sourceText.value = sampleText;
     saveSourceText();
-    ensureAvailableFontOption();
     ensureDefaultFileName();
     buildSlidesFromInput();
   });
@@ -114,7 +113,7 @@ function bindEvents() {
 
 async function initializeApp() {
   populateFontOptions();
-  await restoreUploadedAssets();
+  const restoredSourceText = restoreSourceText();
   const restoredCachedFonts = restoreCachedFontOptions();
   if (!restoredCachedFonts) {
     await loadLocalFonts(true);
@@ -128,8 +127,6 @@ async function initializeApp() {
   ensureAvailableFontOption();
   ensureDefaultFileName();
   saveOutputSettings();
-
-  const restoredSourceText = restoreSourceText();
   updateFileLabels();
 
   if (restoredSourceText || elements.sourceText.value.trim()) {

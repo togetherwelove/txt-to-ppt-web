@@ -1,10 +1,9 @@
 import { elements } from "./dom.js";
-import { ensureAvailableFontOption } from "./fonts.js";
 import { updateMockup } from "./mockup.js";
 import { ensureDefaultFileName } from "./settings.js";
 import { readTextFile } from "./slides.js";
 import { persistedAssetNames, state } from "./state.js";
-import { readFileAsDataUrl, restoreSourceText, saveSourceText } from "./storage.js";
+import { readFileAsDataUrl, saveSourceText } from "./storage.js";
 import { setStatus, updateFileLabels } from "./ui.js";
 
 export async function loadUploadedText(onSourceChange) {
@@ -29,7 +28,6 @@ export async function loadUploadedText(onSourceChange) {
     elements.sourceText.value = text;
     saveSourceText();
 
-    ensureAvailableFontOption();
     ensureDefaultFileName();
     updateFileLabels();
     onSourceChange();
@@ -62,8 +60,4 @@ export async function loadBackgroundImage() {
     state.backgroundImageDataUrl = "";
     setStatus("배경 이미지를 읽는 데 실패했습니다.", true);
   }
-}
-
-export async function restoreUploadedAssets() {
-  restoreSourceText();
 }

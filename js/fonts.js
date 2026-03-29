@@ -43,29 +43,21 @@ export function getBodyFontFamily() {
   return primaryFont || "sans-serif";
 }
 
-export function ensureFontFaceOption(value, label = value) {
-  const normalizedValue = String(value || "").replace(/^["']|["']$/g, "").trim();
-  if (!normalizedValue) {
-    return "";
-  }
-
-  upsertFontOption(normalizedValue, label);
-  return normalizedValue;
-}
-
 export function ensureAvailableFontOption() {
   const selectedFont = String(elements.fontFace.value || "").replace(/^["']|["']$/g, "").trim();
   if (selectedFont) {
-    ensureFontFaceOption(selectedFont, elements.fontFace.selectedOptions[0]?.textContent || selectedFont);
+    if (!Array.from(elements.fontFace.options).some((option) => option.value === selectedFont)) {
+      upsertFontOption(selectedFont, selectedFont);
+    }
     elements.fontFace.value = selectedFont;
     return selectedFont;
   }
 
-  const fallbackFont = ensureFontFaceOption(getBodyFontFamily());
-  if (fallbackFont) {
-    elements.fontFace.value = fallbackFont;
+  const firstOption = elements.fontFace.options[0]?.value || "";
+  if (firstOption) {
+    elements.fontFace.value = firstOption;
   }
-  return fallbackFont;
+  return firstOption;
 }
 
 function saveCachedFontOptions(fontOptions) {
