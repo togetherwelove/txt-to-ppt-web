@@ -503,13 +503,11 @@ button:hover {
   border-radius: 0;
   display: block;
   white-space: pre-wrap;
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
   text-align: center;
   z-index: 2;
   cursor: grab;
   user-select: none;
   touch-action: none;
-  box-shadow: 0 18px 30px rgba(0, 0, 0, 0.18);
 }
 
 .slide-mockup-text.dragging {
