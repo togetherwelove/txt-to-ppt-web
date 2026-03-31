@@ -261,12 +261,21 @@ select {
   font-size: 1.2rem;
 }
 
+.icon-button-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  transform-origin: center;
+}
+
 .icon-button:disabled {
   cursor: wait;
   opacity: 0.72;
 }
 
-.icon-button.is-loading {
+.icon-button.is-loading .icon-button-glyph {
   animation: spin 0.9s linear infinite;
 }
 
