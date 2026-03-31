@@ -22,6 +22,7 @@ export const elements = {
   downloadTextButton: document.querySelector("#downloadTextButton"),
   downloadButton: document.querySelector("#downloadButton"),
   statusMessage: document.querySelector("#statusMessage"),
+  floatingTooltip: document.querySelector("#floatingTooltip"),
   slideMockup: document.querySelector("#slideMockup"),
   slideSafeZone: document.querySelector("#slideSafeZone"),
   slideMockupText: document.querySelector("#slideMockupText"),
