@@ -10,6 +10,8 @@ import { saveSourceText, restoreSourceText } from "./storage.js";
 import { state } from "./state.js";
 import { setStatus, updateFileLabels } from "./ui.js";
 
+let activeTooltipButton = null;
+
 function buildSlidesFromInput() {
   const rawText = elements.sourceText.value;
   if (!rawText.trim()) {
@@ -24,6 +26,101 @@ function buildSlidesFromInput() {
   updateMockup(slides);
   setStatus(`${slides.length}개의 슬라이드를 준비했습니다.`);
   return slides;
+}
+
+function positionFloatingTooltip(button) {
+  const tooltip = elements.floatingTooltip;
+  if (!button || !tooltip) {
+    return;
+  }
+
+  const viewportPadding = 12;
+  const gap = 12;
+  const rect = button.getBoundingClientRect();
+
+  tooltip.style.left = "0px";
+  tooltip.style.top = "0px";
+
+  const tooltipRect = tooltip.getBoundingClientRect();
+  const showAbove = rect.bottom + gap + tooltipRect.height > window.innerHeight - viewportPadding
+    && rect.top - gap - tooltipRect.height >= viewportPadding;
+  const top = showAbove
+    ? rect.top - gap - tooltipRect.height
+    : Math.min(rect.bottom + gap, window.innerHeight - viewportPadding - tooltipRect.height);
+
+  const centeredLeft = rect.left + rect.width / 2 - tooltipRect.width / 2;
+  const maxLeft = window.innerWidth - viewportPadding - tooltipRect.width;
+  const left = Math.min(Math.max(viewportPadding, centeredLeft), Math.max(viewportPadding, maxLeft));
+
+  tooltip.style.left = `${left}px`;
+  tooltip.style.top = `${Math.max(viewportPadding, top)}px`;
+}
+
+function showFloatingTooltip(button) {
+  const tooltip = elements.floatingTooltip;
+  const content = button?.querySelector(".tooltip-content");
+  if (!tooltip || !content) {
+    return;
+  }
+
+  activeTooltipButton = button;
+  tooltip.innerHTML = content.innerHTML;
+  tooltip.hidden = false;
+  tooltip.classList.add("is-visible");
+  positionFloatingTooltip(button);
+}
+
+function hideFloatingTooltip(button = activeTooltipButton) {
+  if (!button || button !== activeTooltipButton) {
+    return;
+  }
+
+  const tooltip = elements.floatingTooltip;
+  activeTooltipButton = null;
+  if (!tooltip) {
+    return;
+  }
+
+  tooltip.classList.remove("is-visible");
+  tooltip.hidden = true;
+  tooltip.innerHTML = "";
+}
+
+function bindTooltips() {
+  const tooltipButtons = document.querySelectorAll(".info-tooltip");
+
+  tooltipButtons.forEach((button) => {
+    button.addEventListener("mouseenter", () => {
+      showFloatingTooltip(button);
+    });
+
+    button.addEventListener("mouseleave", () => {
+      hideFloatingTooltip(button);
+    });
+
+    button.addEventListener("focusin", () => {
+      showFloatingTooltip(button);
+    });
+
+    button.addEventListener("focusout", (event) => {
+      if (button.contains(event.relatedTarget)) {
+        return;
+      }
+      hideFloatingTooltip(button);
+    });
+  });
+
+  window.addEventListener("scroll", () => {
+    if (activeTooltipButton) {
+      positionFloatingTooltip(activeTooltipButton);
+    }
+  }, true);
+
+  window.addEventListener("resize", () => {
+    if (activeTooltipButton) {
+      positionFloatingTooltip(activeTooltipButton);
+    }
+  });
 }
 
 function bindEvents() {
@@ -137,5 +234,6 @@ async function initializeApp() {
   }
 }
 
+bindTooltips();
 bindEvents();
 void initializeApp();
