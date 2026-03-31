@@ -107,8 +107,13 @@ function setFontLoadingState(isLoading) {
     return;
   }
 
+  const glyph = button.querySelector(".icon-button-glyph");
+  if (!glyph) {
+    return;
+  }
+
   if (!button.dataset.idleLabel) {
-    button.dataset.idleLabel = button.textContent || "\uD83D\uDCE5";
+    button.dataset.idleLabel = glyph.textContent || "\uD83D\uDCE5";
   }
 
   button.disabled = isLoading;
@@ -117,7 +122,7 @@ function setFontLoadingState(isLoading) {
   button.title = isLoading
     ? "\uAE00\uAF34 \uBD88\uB7EC\uC624\uB294 \uC911"
     : "\uC124\uCE58 \uD3F0\uD2B8 \uBD88\uB7EC\uC624\uAE30";
-  button.textContent = isLoading ? "\u21BB" : button.dataset.idleLabel;
+  glyph.textContent = isLoading ? "\u21BB" : button.dataset.idleLabel;
 }
 
 function readTag(view, offset) {
