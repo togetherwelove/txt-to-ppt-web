@@ -2,9 +2,12 @@ import { STORAGE_KEYS } from "./config.js";
 import { elements } from "./dom.js";
 import { alignmentState } from "./state.js";
 
+const DEFAULT_FILE_NAME = "generated-slides";
+const DATE_FILE_NAME_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
 export function sanitizeFileName(fileName) {
   const trimmed = (fileName || "").trim().replace(/\.pptx$/i, "");
-  return trimmed.replace(/[<>:"/\\|?*\u0000-\u001F]/g, "-") || "generated-slides";
+  return trimmed.replace(/[<>:"/\\|?*\u0000-\u001F]/g, "-") || DEFAULT_FILE_NAME;
 }
 
 export function getTodayTitle() {
@@ -18,8 +21,14 @@ export function getTodayTitle() {
 
 export function ensureDefaultFileName() {
   const currentValue = (elements.fileName.value || "").trim();
-  if (!currentValue || currentValue === "generated-slides") {
-    elements.fileName.value = getTodayTitle();
+  const todayTitle = getTodayTitle();
+  if (!currentValue || currentValue === DEFAULT_FILE_NAME) {
+    elements.fileName.value = todayTitle;
+    return;
+  }
+
+  if (DATE_FILE_NAME_PATTERN.test(currentValue) && currentValue < todayTitle) {
+    elements.fileName.value = todayTitle;
   }
 }
 

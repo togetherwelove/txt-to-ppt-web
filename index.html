@@ -22,7 +22,6 @@
             </button>
           </div>
         </div>
-        <p class="panel-description">한 줄이 한 슬라이드가 되며, 같은 줄의 <code>/</code>는 줄바꿈으로 처리됩니다.</p>
         <div class="field-grid">
           <div class="field upload-field">
             <span>텍스트 파일</span>
@@ -99,7 +98,7 @@
             </div>
           </div>
           <label class="field">
-            <span>상하 패딩</span>
+            <span>상하 여백</span>
             <div class="range-field">
               <input id="padding" type="range" min="0" max="240" value="20" step="5">
               <output id="paddingValue" for="padding">20pt</output>
@@ -132,7 +131,7 @@
       </section>
     </main>
   </div>
-  <div id="floatingTooltip" class="floating-tooltip" hidden></div>
+  <div id="floatingTooltip" class="floating-tooltip" role="tooltip" hidden></div>
   <div id="statusMessage" class="status-toast" role="status" aria-live="polite" hidden></div>
   <script src="https://unpkg.com/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
   <script type="module" src="./js/main.js"></script>

@@ -11,11 +11,14 @@ import { state } from "./state.js";
 import { setStatus, updateFileLabels } from "./ui.js";
 
 let activeTooltipButton = null;
+let isTooltipPinned = false;
 
-function buildSlidesFromInput() {
+function buildSlidesFromInput(shouldNotify = true) {
   const rawText = elements.sourceText.value;
   if (!rawText.trim()) {
-    setStatus("텍스트 내용을 먼저 입력해 주세요.", true);
+    if (shouldNotify) {
+      setStatus("텍스트 내용을 먼저 입력해 주세요.", true);
+    }
     state.currentSlides = [];
     updateMockup([]);
     return [];
@@ -24,7 +27,9 @@ function buildSlidesFromInput() {
   const slides = parseSlides(rawText);
   state.currentSlides = slides;
   updateMockup(slides);
-  setStatus(`${slides.length}개의 슬라이드를 준비했습니다.`);
+  if (shouldNotify) {
+    setStatus(`${slides.length}개의 슬라이드를 준비했습니다.`);
+  }
   return slides;
 }
 
@@ -56,14 +61,20 @@ function positionFloatingTooltip(button) {
   tooltip.style.top = `${Math.max(viewportPadding, top)}px`;
 }
 
-function showFloatingTooltip(button) {
+function showFloatingTooltip(button, pinned = false) {
   const tooltip = elements.floatingTooltip;
   const content = button?.querySelector(".tooltip-content");
   if (!tooltip || !content) {
     return;
   }
 
+  if (activeTooltipButton && activeTooltipButton !== button) {
+    hideFloatingTooltip(activeTooltipButton);
+  }
+
   activeTooltipButton = button;
+  isTooltipPinned = pinned;
+  button.setAttribute("aria-expanded", "true");
   tooltip.innerHTML = content.innerHTML;
   tooltip.hidden = false;
   tooltip.classList.add("is-visible");
@@ -76,6 +87,8 @@ function hideFloatingTooltip(button = activeTooltipButton) {
   }
 
   const tooltip = elements.floatingTooltip;
+  button.setAttribute("aria-expanded", "false");
+  isTooltipPinned = false;
   activeTooltipButton = null;
   if (!tooltip) {
     return;
@@ -90,24 +103,69 @@ function bindTooltips() {
   const tooltipButtons = document.querySelectorAll(".info-tooltip");
 
   tooltipButtons.forEach((button) => {
+    button.setAttribute("aria-expanded", "false");
+
     button.addEventListener("mouseenter", () => {
-      showFloatingTooltip(button);
+      if (!isTooltipPinned) {
+        showFloatingTooltip(button);
+      }
     });
 
     button.addEventListener("mouseleave", () => {
-      hideFloatingTooltip(button);
+      if (!isTooltipPinned) {
+        hideFloatingTooltip(button);
+      }
     });
 
     button.addEventListener("focusin", () => {
-      showFloatingTooltip(button);
+      showFloatingTooltip(button, isTooltipPinned && activeTooltipButton === button);
     });
 
     button.addEventListener("focusout", (event) => {
+      if (isTooltipPinned && activeTooltipButton === button) {
+        return;
+      }
       if (button.contains(event.relatedTarget)) {
         return;
       }
       hideFloatingTooltip(button);
     });
+
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (activeTooltipButton === button && isTooltipPinned) {
+        hideFloatingTooltip(button);
+        return;
+      }
+
+      showFloatingTooltip(button, true);
+      button.focus();
+    });
+  });
+
+  document.addEventListener("pointerdown", (event) => {
+    const target = event.target;
+    if (!(target instanceof Node) || !activeTooltipButton) {
+      return;
+    }
+
+    if (activeTooltipButton.contains(target) || elements.floatingTooltip?.contains(target)) {
+      return;
+    }
+
+    hideFloatingTooltip(activeTooltipButton);
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape" || !activeTooltipButton) {
+      return;
+    }
+
+    const button = activeTooltipButton;
+    hideFloatingTooltip(button);
+    button.focus();
   });
 
   window.addEventListener("scroll", () => {
@@ -143,7 +201,7 @@ function bindEvents() {
     elements.sourceText.value = sampleText;
     saveSourceText();
     ensureDefaultFileName();
-    buildSlidesFromInput();
+    buildSlidesFromInput(false);
   });
 
   elements.downloadTextButton.addEventListener("click", downloadSourceText);
@@ -153,7 +211,7 @@ function bindEvents() {
 
   elements.sourceText.addEventListener("input", () => {
     saveSourceText();
-    buildSlidesFromInput();
+    buildSlidesFromInput(false);
   });
 
   elements.fileName.addEventListener("input", saveOutputSettings);
@@ -227,7 +285,7 @@ async function initializeApp() {
   updateFileLabels();
 
   if (restoredSourceText || elements.sourceText.value.trim()) {
-    buildSlidesFromInput();
+    buildSlidesFromInput(false);
   } else {
     state.currentSlides = [];
     updateMockup([]);

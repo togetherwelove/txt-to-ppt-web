@@ -2,26 +2,36 @@ import { elements } from "./dom.js";
 import { persistedAssetNames } from "./state.js";
 
 const STATUS_HIDE_DELAY_MS = 2200;
-
-let statusHideTimeoutId = 0;
+const STATUS_REMOVE_DELAY_MS = 180;
 
 export function setStatus(message, isError = false) {
   if (!elements.statusMessage) {
     return;
   }
 
-  if (statusHideTimeoutId) {
-    window.clearTimeout(statusHideTimeoutId);
+  elements.statusMessage.hidden = false;
+  const toastItem = document.createElement("div");
+  toastItem.className = "status-toast-item";
+  toastItem.textContent = message;
+
+  if (isError) {
+    toastItem.classList.add("is-error");
   }
 
-  elements.statusMessage.textContent = message;
-  elements.statusMessage.hidden = false;
-  elements.statusMessage.classList.toggle("is-error", isError);
-  elements.statusMessage.classList.add("is-visible");
+  elements.statusMessage.append(toastItem);
 
-  statusHideTimeoutId = window.setTimeout(() => {
-    elements.statusMessage.classList.remove("is-visible");
-    statusHideTimeoutId = 0;
+  window.requestAnimationFrame(() => {
+    toastItem.classList.add("is-visible");
+  });
+
+  window.setTimeout(() => {
+    toastItem.classList.remove("is-visible");
+    window.setTimeout(() => {
+      toastItem.remove();
+      if (!elements.statusMessage.childElementCount) {
+        elements.statusMessage.hidden = true;
+      }
+    }, STATUS_REMOVE_DELAY_MS);
   }, STATUS_HIDE_DELAY_MS);
 }
 
