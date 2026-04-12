@@ -49,7 +49,6 @@
           <button id="loadSampleButton" type="button" class="secondary">샘플 불러오기</button>
           <button id="downloadTextButton" type="button" class="secondary">TXT 다운로드</button>
           <button id="downloadButton" type="button" class="primary">PPTX 다운로드</button>
-          <p id="statusMessage" class="status">텍스트를 입력하거나 파일을 올리면 가상 슬라이드에 바로 반영됩니다.</p>
         </div>
       </section>
       <section class="panel settings">
@@ -134,6 +133,7 @@
     </main>
   </div>
   <div id="floatingTooltip" class="floating-tooltip" hidden></div>
+  <div id="statusMessage" class="status-toast" role="status" aria-live="polite" hidden></div>
   <script src="https://unpkg.com/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
   <script type="module" src="./js/main.js"></script>
 </body>

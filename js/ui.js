@@ -1,9 +1,28 @@
 import { elements } from "./dom.js";
 import { persistedAssetNames } from "./state.js";
 
+const STATUS_HIDE_DELAY_MS = 2200;
+
+let statusHideTimeoutId = 0;
+
 export function setStatus(message, isError = false) {
+  if (!elements.statusMessage) {
+    return;
+  }
+
+  if (statusHideTimeoutId) {
+    window.clearTimeout(statusHideTimeoutId);
+  }
+
   elements.statusMessage.textContent = message;
-  elements.statusMessage.style.color = isError ? "#b42318" : "";
+  elements.statusMessage.hidden = false;
+  elements.statusMessage.classList.toggle("is-error", isError);
+  elements.statusMessage.classList.add("is-visible");
+
+  statusHideTimeoutId = window.setTimeout(() => {
+    elements.statusMessage.classList.remove("is-visible");
+    statusHideTimeoutId = 0;
+  }, STATUS_HIDE_DELAY_MS);
 }
 
 export function getFileDisplayName(inputFile, persistedName) {
