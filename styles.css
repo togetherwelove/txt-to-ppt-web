@@ -35,57 +35,13 @@ select {
   padding: 32px 0 48px;
 }
 
-.hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1.7fr) minmax(280px, 0.9fr);
-  gap: 24px;
-  align-items: stretch;
-  margin-bottom: 24px;
-}
-
-.hero-copy,
-.hero-card,
 .panel {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 24px;
+  padding: 26px;
   position: relative;
-}
-
-.hero-copy {
-  padding: 32px;
-}
-
-.hero-copy h1 {
-  margin: 0;
-  line-height: 1.02;
-  word-break: keep-all;
-  color: var(--accent);
-}
-
-.hero-text {
-  margin: 16px 0 0;
-  max-width: 62ch;
-  font-size: 1rem;
-  line-height: 1.7;
-  color: var(--muted);
-}
-
-.hero-card {
-  padding: 24px;
-  color: var(--ink);
-}
-
-.hero-card-title {
-  margin: 0 0 14px;
-  font-size: 1rem;
-  font-weight: 800;
-}
-
-.hero-card ul {
-  margin: 0;
-  padding-left: 20px;
-  line-height: 1.7;
+  overflow: visible;
 }
 
 .workspace {
@@ -96,12 +52,6 @@ select {
   align-items: stretch;
 }
 
-.panel {
-  padding: 26px;
-  position: relative;
-  overflow: visible;
-}
-
 .panel::before {
   content: none;
 }
@@ -109,10 +59,8 @@ select {
 .controls {
   grid-area: controls;
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr) auto;
   gap: 18px;
   align-content: start;
-  min-height: 0;
 }
 
 .settings {
@@ -123,7 +71,6 @@ select {
   align-content: start;
   height: auto;
   max-height: none;
-  min-height: 0;
   overflow: visible;
 }
 
@@ -138,12 +85,12 @@ select {
   align-items: end;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 20px;
 }
 
-.controls .panel-header,
-.settings .panel-header {
-  margin-bottom: 0;
+.panel-description {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
 }
 
 .panel-header h2 {
@@ -156,12 +103,15 @@ select {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  min-width: 0;
 }
 
 .info-tooltip {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   position: relative;
-  flex: none;
+  flex: 0 0 auto;
   width: 28px;
   height: 28px;
   padding: 0;
@@ -170,12 +120,7 @@ select {
   background: var(--panel-strong);
   color: var(--accent-deep);
   overflow: visible;
-}
-
-.hero-card .info-tooltip {
-  background: var(--panel-strong);
-  border-color: var(--line);
-  color: var(--accent-deep);
+  line-height: 1;
 }
 
 .info-tooltip-trigger {
@@ -195,8 +140,6 @@ select {
 
 .floating-tooltip {
   position: fixed;
-  left: 0;
-  top: 0;
   width: min(360px, calc(100vw - 24px));
   max-width: calc(100vw - 24px);
   padding: 12px 14px;
@@ -209,7 +152,6 @@ select {
   line-height: 1.6;
   text-align: left;
   isolation: isolate;
-  opacity: 0;
   visibility: hidden;
   transform: translateY(6px);
   transition: opacity 160ms ease, transform 160ms ease, visibility 160ms ease;
@@ -225,17 +167,16 @@ select {
 
 .field-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr 1fr;
   gap: 16px;
 }
 
 .controls .field-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: stretch;
 }
 
 .settings .field-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 1fr 1fr;
   gap: 18px;
 }
 
@@ -243,7 +184,6 @@ select {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-bottom: 0;
 }
 
 .field:has(> .field-item) {
@@ -256,7 +196,6 @@ select {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  min-width: 0;
 }
 
 .field span {
@@ -264,7 +203,7 @@ select {
   font-weight: 700;
 }
 
-.field input,
+.field input:not([type="color"]),
 .field textarea,
 .field select {
   width: 100%;
@@ -276,8 +215,16 @@ select {
 }
 
 .field select {
-  appearance: auto;
-  padding-right: 16px;
+  appearance: none;
+  padding-right: 44px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--accent-deep) 50%),
+    linear-gradient(135deg, var(--accent-deep) 50%, transparent 50%);
+  background-position:
+    calc(100% - 20px) calc(50% - 1px),
+    calc(100% - 14px) calc(50% - 1px);
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
 }
 
 .font-field-row {
@@ -287,14 +234,9 @@ select {
   align-items: center;
 }
 
-.font-field-row select {
-  min-width: 0;
-}
-
 .icon-button {
   width: 52px;
   height: 52px;
-  padding: 0;
   border-radius: 16px;
   background: rgba(187, 77, 45, 0.08);
   color: var(--accent-deep);
@@ -333,8 +275,6 @@ select {
 .controls > .field {
   display: flex;
   flex-direction: column;
-  min-height: 0;
-  margin: 0;
 }
 
 .controls > .field textarea {
@@ -343,11 +283,18 @@ select {
 
 .file-field {
   position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 64px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--panel-strong);
+  cursor: pointer;
 }
 
 .upload-field {
   gap: 10px;
-  min-width: 0;
 }
 
 .upload-field > span {
@@ -361,19 +308,8 @@ select {
   cursor: pointer;
 }
 
-.file-field-row {
-  display: flex;
-  align-items: center;
-  min-height: 64px;
-  padding: 0 14px;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background: var(--panel-strong);
-}
-
 .file-name {
   width: 100%;
-  min-width: 0;
   display: flex;
   align-items: center;
   overflow: hidden;
@@ -423,7 +359,6 @@ select {
 
 .range-field input[type="range"] {
   flex: 1;
-  padding: 0;
 }
 
 .range-field output {
@@ -441,7 +376,6 @@ select {
 
 .controls .action-row {
   justify-content: start;
-  align-items: center;
 }
 
 button {
@@ -469,12 +403,10 @@ button:hover {
 }
 
 .status {
-  margin: 0;
   color: var(--muted);
 }
 
 .mockup-box {
-  margin: 0;
   padding: 18px 20px 20px;
   border-radius: 20px;
   background: var(--panel-strong);
@@ -486,20 +418,19 @@ button:hover {
   justify-content: space-between;
   align-items: end;
   gap: 16px;
-  padding-bottom: 14px;
+  margin-bottom: 9px;
 }
 
 .mockup-header h3 {
-  margin: 0;
   font-size: 0.98rem;
   font-weight: 800;
+  margin: 0;
 }
 
 .slide-mockup {
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
-  border-radius: 0;
   overflow: hidden;
   background: #141822;
   border: 1px solid rgba(16, 19, 26, 0.12);
@@ -529,8 +460,6 @@ button:hover {
   position: relative;
   width: 100%;
   max-width: none;
-  padding: 0;
-  border-radius: 0;
   display: block;
   white-space: pre-wrap;
   text-align: center;
@@ -554,7 +483,6 @@ button:hover {
 }
 
 @media (max-width: 900px) {
-  .hero,
   .field-grid {
     grid-template-columns: 1fr;
   }
@@ -563,11 +491,6 @@ button:hover {
   .mockup-header {
     align-items: start;
     flex-direction: column;
-  }
-
-  .file-field-row {
-    grid-template-columns: 1fr;
-    align-items: stretch;
   }
 
   .floating-tooltip {
@@ -591,7 +514,6 @@ button:hover {
       "controls"
       "settings";
     grid-template-rows: auto auto;
-    min-height: 0;
   }
 
   .controls,
@@ -606,14 +528,12 @@ button:hover {
     gap: 16px;
     height: auto;
     max-height: none;
-    min-height: 0;
   }
 
   .settings {
     display: block;
     height: auto;
     max-height: none;
-    min-height: 0;
     overflow: visible;
   }
 
@@ -623,18 +543,11 @@ button:hover {
 
   .settings .field-grid {
     padding: 18px;
-  }
-
-  .settings .field-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .controls .field-grid {
     grid-template-columns: 1fr;
-  }
-
-  .controls > .field {
-    min-height: 0;
   }
 
   #sourceText {
@@ -646,7 +559,6 @@ button:hover {
   }
 
   .controls .action-row {
-    margin-top: 0;
     align-items: stretch;
     flex-direction: column;
   }

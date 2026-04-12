@@ -11,23 +11,6 @@
 </head>
 <body>
   <div class="page-shell">
-    <header class="hero">
-      <div class="hero-copy">
-        <h1>텍스트 파일을 바로 프레젠테이션으로 변환하세요</h1>
-        <p class="hero-text">
-          한 줄이 하나의 슬라이드가 되고, 같은 줄 안의 <code>/</code>는 슬라이드 내부 줄바꿈으로 처리됩니다.
-          아래 가상 슬라이드에서 텍스트 박스를 드래그해 상하 정렬을 바꾸고, 폰트와 패딩 옵션도 함께 조정할 수 있습니다.
-        </p>
-      </div>
-      <div class="hero-card">
-        <p class="hero-card-title">입력 규칙</p>
-        <ul>
-          <li>텍스트 한 줄마다 슬라이드가 하나씩 생성됩니다.</li>
-          <li>같은 줄 안의 <code>/</code>는 줄바꿈으로 들어갑니다.</li>
-          <li>빈 줄은 빈 슬라이드로 유지됩니다.</li>
-        </ul>
-      </div>
-    </header>
     <main class="workspace">
       <section class="panel controls">
         <div class="panel-header">
@@ -39,25 +22,22 @@
             </button>
           </div>
         </div>
+        <p class="panel-description">한 줄이 한 슬라이드가 되며, 같은 줄의 <code>/</code>는 줄바꿈으로 처리됩니다.</p>
         <div class="field-grid">
-          <label class="field upload-field">
+          <div class="field upload-field">
             <span>텍스트 파일</span>
             <div class="file-field">
               <input id="textFile" class="file-input" type="file" accept=".txt,text/plain">
-              <div class="file-field-row">
-                <span id="textFileName" class="file-name">선택된 파일 없음</span>
-              </div>
+              <span id="textFileName" class="file-name">선택된 파일 없음</span>
             </div>
-          </label>
-          <label class="field upload-field">
+          </div>
+          <div class="field upload-field">
             <span>배경 이미지</span>
             <div class="file-field">
               <input id="backgroundFile" class="file-input" type="file" accept="image/*">
-              <div class="file-field-row">
-                <span id="backgroundFileName" class="file-name">선택된 파일 없음</span>
-              </div>
+              <span id="backgroundFileName" class="file-name">선택된 파일 없음</span>
             </div>
-          </label>
+          </div>
         </div>
         <label class="field">
           <span>텍스트 내용</span>
