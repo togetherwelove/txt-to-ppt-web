@@ -61,8 +61,10 @@ select {
 .controls {
   grid-area: controls;
   display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
   gap: 12px;
   align-content: start;
+  min-height: 0;
 }
 
 .settings {
@@ -161,6 +163,51 @@ select {
   transform: translateY(0);
 }
 
+.startup-loading {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(243, 240, 234, 0.78);
+  backdrop-filter: blur(6px);
+  z-index: 10001;
+}
+
+.startup-loading[hidden] {
+  display: none;
+}
+
+.startup-loading-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--ink);
+  box-shadow: var(--toast-shadow);
+}
+
+.startup-loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(31, 34, 48, 0.16);
+  border-top-color: var(--accent);
+  border-radius: 999px;
+  animation: spin 0.9s linear infinite;
+}
+
+.startup-loading-text {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
 .status-toast {
   position: fixed;
   top: 24px;
@@ -172,6 +219,10 @@ select {
   justify-items: end;
   pointer-events: none;
   z-index: 10000;
+}
+
+.status-toast[hidden] {
+  display: none;
 }
 
 .status-toast-item {
@@ -313,10 +364,12 @@ select {
 .controls > .field {
   display: flex;
   flex-direction: column;
+  min-height: 0;
 }
 
 .controls > .field textarea {
   flex: 1;
+  min-height: 0;
 }
 
 .file-field {
@@ -438,22 +491,22 @@ button:hover {
 }
 
 .mockup-box {
-  padding: 12px;
-  border-radius: 10px;
+  padding: 8px;
+  border-radius: 8px;
   background: var(--panel-strong);
   border: 1px solid var(--line);
 }
 
 .mockup-header {
   display: flex;
-  justify-content: space-between;
-  align-items: end;
-  gap: 8px;
+  justify-content: start;
+  align-items: center;
+  gap: 6px;
   margin-bottom: 6px;
 }
 
 .mockup-header h3 {
-  font-size: 0.98rem;
+  font-size: 0.92rem;
   font-weight: 800;
   margin: 0;
 }
@@ -463,12 +516,9 @@ button:hover {
   width: 100%;
   aspect-ratio: 16 / 9;
   overflow: hidden;
+  border-radius: 4px;
   background: #141822;
-  border: 1px solid rgba(16, 19, 26, 0.12);
-}
-
-.slide-mockup::after {
-  content: none;
+  border: 1px solid rgba(16, 19, 26, 0.16);
 }
 
 .slide-mockup.has-image {
@@ -478,9 +528,9 @@ button:hover {
 
 .slide-safe-zone {
   position: absolute;
-  inset: 60px 70px;
-  border-top: 1px dashed rgba(255, 255, 255, 0.22);
-  border-bottom: 1px dashed rgba(255, 255, 255, 0.22);
+  inset: 60px 0;
+  border-top: 1px dashed rgba(255, 255, 255, 0.24);
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.24);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -490,13 +540,18 @@ button:hover {
 .slide-mockup-text {
   position: relative;
   width: 100%;
-  max-width: none;
   display: block;
   white-space: pre-wrap;
   text-align: center;
   cursor: grab;
   user-select: none;
   touch-action: none;
+  line-height: 1.2;
+  padding: 0;
+}
+
+.slide-mockup-text.is-placeholder {
+  opacity: 0.64;
 }
 
 .slide-mockup-text.dragging {

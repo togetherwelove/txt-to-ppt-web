@@ -1,4 +1,3 @@
-import { sampleText } from "./config.js";
 import { elements } from "./dom.js";
 import { downloadPresentation, downloadSourceText } from "./exports.js";
 import { loadBackgroundImage, loadUploadedText } from "./files.js";
@@ -12,6 +11,24 @@ import { setStatus, updateFileLabels } from "./ui.js";
 
 let activeTooltipButton = null;
 let isTooltipPinned = false;
+let mockupResizeFrameId = 0;
+let mockupResizeObserver = null;
+
+const STARTUP_FONT_LOADING_TIMEOUT_MS = 2400;
+
+function setStartupLoadingVisible(isVisible) {
+  if (!elements.startupLoading) {
+    return;
+  }
+
+  elements.startupLoading.hidden = !isVisible;
+}
+
+function wait(ms) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
+}
 
 function buildSlidesFromInput(shouldNotify = true) {
   const rawText = elements.sourceText.value;
@@ -190,20 +207,6 @@ function bindEvents() {
     void loadBackgroundImage();
   });
 
-  elements.loadSampleButton.addEventListener("click", () => {
-    if (elements.sourceText.value.trim()) {
-      const shouldOverwrite = window.confirm("이미 작성된 텍스트가 있습니다. 샘플로 덮어쓸까요?");
-      if (!shouldOverwrite) {
-        return;
-      }
-    }
-
-    elements.sourceText.value = sampleText;
-    saveSourceText();
-    ensureDefaultFileName();
-    buildSlidesFromInput(false);
-  });
-
   elements.downloadTextButton.addEventListener("click", downloadSourceText);
   elements.downloadButton.addEventListener("click", () => {
     void downloadPresentation(buildSlidesFromInput);
@@ -266,32 +269,65 @@ function bindEvents() {
   });
 }
 
+function bindMockupResizeObserver() {
+  if (!elements.slideMockup || !("ResizeObserver" in window)) {
+    return;
+  }
+
+  mockupResizeObserver = new ResizeObserver(() => {
+    if (mockupResizeFrameId) {
+      window.cancelAnimationFrame(mockupResizeFrameId);
+    }
+
+    mockupResizeFrameId = window.requestAnimationFrame(() => {
+      mockupResizeFrameId = 0;
+      updateMockup(state.currentSlides.length ? state.currentSlides : getSlidesFromInput());
+    });
+  });
+
+  mockupResizeObserver.observe(elements.slideMockup);
+}
+
 async function initializeApp() {
   populateFontOptions();
   const restoredSourceText = restoreSourceText();
   const restoredCachedFonts = restoreCachedFontOptions();
-  if (!restoredCachedFonts) {
-    await loadLocalFonts(true);
-  }
-  restoreOutputSettings();
+  const shouldLoadFontsOnStartup = !restoredCachedFonts;
 
-  if (elements.fontFace.value && !Array.from(elements.fontFace.options).some((option) => option.value === elements.fontFace.value)) {
-    upsertFontOption(elements.fontFace.value, elements.fontFace.value);
+  if (shouldLoadFontsOnStartup) {
+    setStartupLoadingVisible(true);
   }
 
-  ensureAvailableFontOption();
-  ensureDefaultFileName();
-  saveOutputSettings();
-  updateFileLabels();
+  try {
+    if (shouldLoadFontsOnStartup) {
+      await Promise.race([
+        loadLocalFonts(true, false),
+        wait(STARTUP_FONT_LOADING_TIMEOUT_MS),
+      ]);
+    }
+    restoreOutputSettings();
 
-  if (restoredSourceText || elements.sourceText.value.trim()) {
-    buildSlidesFromInput(false);
-  } else {
-    state.currentSlides = [];
-    updateMockup([]);
+    if (elements.fontFace.value && !Array.from(elements.fontFace.options).some((option) => option.value === elements.fontFace.value)) {
+      upsertFontOption(elements.fontFace.value, elements.fontFace.value);
+    }
+
+    ensureAvailableFontOption();
+    ensureDefaultFileName();
+    saveOutputSettings();
+    updateFileLabels();
+
+    if (restoredSourceText || elements.sourceText.value.trim()) {
+      buildSlidesFromInput(false);
+    } else {
+      state.currentSlides = [];
+      updateMockup([]);
+    }
+  } finally {
+    setStartupLoadingVisible(false);
   }
 }
 
 bindTooltips();
 bindEvents();
+bindMockupResizeObserver();
 void initializeApp();

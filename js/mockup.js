@@ -5,8 +5,9 @@ import { alignmentState, state } from "./state.js";
 import { getCurrentPageSize, getMockupSlideText, getPaddingValues, paddingPointsToInches, updatePaddingOutputs } from "./slides.js";
 import { updateColorPreview } from "./ui.js";
 
+const EMPTY_PREVIEW_TEXT = "\uD14D\uC2A4\uD2B8\uB97C \uC785\uB825\uD558\uBA74 \uC5EC\uAE30\uC5D0 \uD45C\uC2DC\uB429\uB2C8\uB2E4";
+
 export function applyTextPosition() {
-  alignmentState.horizontal = "center";
   elements.slideSafeZone.style.justifyContent = "center";
   elements.slideSafeZone.style.alignItems =
     alignmentState.vertical === "top" ? "flex-start" : alignmentState.vertical === "bottom" ? "flex-end" : "center";
@@ -28,6 +29,7 @@ export function setAlignmentFromPointer(clientX, clientY) {
 
 export function updateMockup(slides) {
   const previewText = getMockupSlideText(slides);
+  const isEmptyPreview = !previewText;
   const fontSize = Number(elements.fontSize.value) || 28;
   const aspectRatio = elements.layout.value === "LAYOUT_STANDARD" ? "4 / 3" : "16 / 9";
   const paddings = getPaddingValues();
@@ -35,28 +37,26 @@ export function updateMockup(slides) {
   elements.fontSizeValue.textContent = `${fontSize}px`;
   updatePaddingOutputs(paddings);
   updateColorPreview();
+
   elements.slideMockup.style.aspectRatio = aspectRatio;
   elements.slideMockup.style.backgroundColor = elements.backgroundColor.value;
+  elements.slideMockup.style.backgroundImage = state.backgroundImageDataUrl
+    ? `linear-gradient(rgba(10, 12, 18, 0.16), rgba(10, 12, 18, 0.16)), url("${state.backgroundImageDataUrl}")`
+    : "none";
+  elements.slideMockup.classList.toggle("has-image", Boolean(state.backgroundImageDataUrl));
+  elements.slideMockupText.classList.toggle("is-placeholder", isEmptyPreview);
+  elements.slideMockupText.textContent = previewText || EMPTY_PREVIEW_TEXT;
   elements.slideMockupText.style.fontFamily = getSelectedFontFace();
   elements.slideMockupText.style.color = elements.textColor.value;
   elements.slideMockupText.style.textAlign = "center";
-  elements.slideMockupText.textContent = previewText || "텍스트를 입력하면 여기에 표시됩니다";
-
-  if (state.backgroundImageDataUrl) {
-    elements.slideMockup.classList.add("has-image");
-    elements.slideMockup.style.backgroundImage =
-      `linear-gradient(rgba(10, 12, 18, 0.28), rgba(10, 12, 18, 0.28)), url("${state.backgroundImageDataUrl}")`;
-  } else {
-    elements.slideMockup.classList.remove("has-image");
-    elements.slideMockup.style.backgroundImage = "none";
-  }
 
   requestAnimationFrame(() => {
     const pageSize = getCurrentPageSize();
     const mockupRect = elements.slideMockup.getBoundingClientRect();
-    const pixelsPerInch = mockupRect.height / pageSize.height;
+    const widthPixelsPerInch = mockupRect.width / pageSize.width;
+    const heightPixelsPerInch = mockupRect.height / pageSize.height;
+    const pixelsPerInch = Math.min(widthPixelsPerInch, heightPixelsPerInch);
     const paddingInches = paddingPointsToInches(paddings);
-    const previewFontSizePx = Math.max(10, (fontSize / 72) * pixelsPerInch);
     const previewPadding = {
       top: paddingInches.top * pixelsPerInch,
       right: paddingInches.right * pixelsPerInch,
@@ -68,8 +68,7 @@ export function updateMockup(slides) {
     elements.slideSafeZone.style.right = `${previewPadding.right}px`;
     elements.slideSafeZone.style.bottom = `${previewPadding.bottom}px`;
     elements.slideSafeZone.style.left = `${previewPadding.left}px`;
-    elements.slideMockupText.style.fontSize = `${previewFontSizePx}px`;
-    elements.slideMockupText.style.padding = "0";
+    elements.slideMockupText.style.fontSize = `${Math.max(10, (fontSize / 72) * pixelsPerInch)}px`;
 
     applyTextPosition();
   });

@@ -45,7 +45,6 @@
 빈 줄은 빈 슬라이드가 됩니다"></textarea>
         </label>
         <div class="action-row">
-          <button id="loadSampleButton" type="button" class="secondary">샘플 불러오기</button>
           <button id="downloadTextButton" type="button" class="secondary">TXT 다운로드</button>
           <button id="downloadButton" type="button" class="primary">PPTX 다운로드</button>
         </div>
@@ -130,6 +129,12 @@
         </div>
       </section>
     </main>
+  </div>
+  <div id="startupLoading" class="startup-loading" role="status" aria-live="polite" hidden>
+    <div class="startup-loading-card">
+      <span class="startup-loading-spinner" aria-hidden="true"></span>
+      <p class="startup-loading-text">설치 글꼴을 불러오는 중...</p>
+    </div>
   </div>
   <div id="floatingTooltip" class="floating-tooltip" role="tooltip" hidden></div>
   <div id="statusMessage" class="status-toast" role="status" aria-live="polite" hidden></div>

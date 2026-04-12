@@ -267,15 +267,19 @@ async function supportsKoreanMetadata(entries) {
   return false;
 }
 
-export async function loadLocalFonts(silent = false) {
-  setFontLoadingState(true);
+export async function loadLocalFonts(silent = false, useButtonLoadingState = true) {
+  if (useButtonLoadingState) {
+    setFontLoadingState(true);
+  }
 
   if (!("queryLocalFonts" in window)) {
     ensureAvailableFontOption();
     if (!silent) {
       setStatus(UNSUPPORTED_BROWSER_MESSAGE, true);
     }
-    setFontLoadingState(false);
+    if (useButtonLoadingState) {
+      setFontLoadingState(false);
+    }
     return;
   }
 
@@ -337,7 +341,9 @@ export async function loadLocalFonts(silent = false) {
       setStatus(LOAD_ERROR_MESSAGE, true);
     }
   } finally {
-    setFontLoadingState(false);
+    if (useButtonLoadingState) {
+      setFontLoadingState(false);
+    }
   }
 }
 
