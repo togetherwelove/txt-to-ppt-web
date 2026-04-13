@@ -3,14 +3,12 @@ import { elements } from "./dom.js";
 import { saveOutputSettings } from "./settings.js";
 import { setStatus } from "./ui.js";
 
-const INSTALLED_SUFFIX = " (\uC124\uCE58\uB428)";
-const UNSUPPORTED_BROWSER_MESSAGE =
-  "\uC774 \uBE0C\uB77C\uC6B0\uC800\uB294 \uC124\uCE58 \uD3F0\uD2B8 \uC77D\uAE30\uB97C \uC9C0\uC6D0\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.";
-const LOAD_SUCCESS_PREFIX = "\uD55C\uAE00 \uC9C0\uC6D0 \uAE00\uAF34 ";
-const LOAD_SUCCESS_SUFFIX = "\uAC1C\uB97C \uBD88\uB7EC\uC654\uC2B5\uB2C8\uB2E4.";
-const LOAD_ERROR_MESSAGE =
-  "\uC124\uCE58 \uAE00\uAF34 \uC811\uADFC \uAD8C\uD55C\uC774 \uC5C6\uAC70\uB098 \uBD88\uB7EC\uC624\uAE30\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.";
-const LOADING_MESSAGE = "\uD55C\uAE00 \uC9C0\uC6D0 \uAE00\uAF34\uC744 \uBD88\uB7EC\uC624\uB294 \uC911\uC785\uB2C8\uB2E4...";
+const INSTALLED_SUFFIX = " (설치됨)";
+const UNSUPPORTED_BROWSER_MESSAGE = "이 브라우저는 설치 폰트 읽기를 지원하지 않습니다.";
+const LOAD_SUCCESS_PREFIX = "한글 지원 글꼴 ";
+const LOAD_SUCCESS_SUFFIX = "개를 불러왔습니다.";
+const LOAD_ERROR_MESSAGE = "설치된 글꼴 불러오기에 실패했습니다.";
+const LOADING_MESSAGE = "한글 지원 글꼴을 불러오는 중입니다...";
 const KOREAN_SCRIPT_TAGS = new Set(["kore", "hang"]);
 const META_TAGS = new Set(["dlng", "slng"]);
 
@@ -113,16 +111,14 @@ function setFontLoadingState(isLoading) {
   }
 
   if (!button.dataset.idleLabel) {
-    button.dataset.idleLabel = glyph.textContent || "\uD83D\uDCE5";
+    button.dataset.idleLabel = glyph.textContent || "⬇️";
   }
 
   button.disabled = isLoading;
   button.classList.toggle("is-loading", isLoading);
   button.setAttribute("aria-busy", isLoading ? "true" : "false");
-  button.title = isLoading
-    ? "\uAE00\uAF34 \uBD88\uB7EC\uC624\uB294 \uC911"
-    : "\uC124\uCE58 \uD3F0\uD2B8 \uBD88\uB7EC\uC624\uAE30";
-  glyph.textContent = isLoading ? "\u21BB" : button.dataset.idleLabel;
+  button.title = isLoading ? LOADING_MESSAGE : "설치된 글꼴 불러오기";
+  glyph.textContent = isLoading ? "↻" : button.dataset.idleLabel;
 }
 
 function readTag(view, offset) {

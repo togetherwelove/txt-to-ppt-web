@@ -5,7 +5,7 @@ import { alignmentState, state } from "./state.js";
 import { getCurrentPageSize, getMockupSlideText, getPaddingValues, paddingPointsToInches, updatePaddingOutputs } from "./slides.js";
 import { updateColorPreview } from "./ui.js";
 
-const EMPTY_PREVIEW_TEXT = "\uD14D\uC2A4\uD2B8\uB97C \uC785\uB825\uD558\uBA74 \uC5EC\uAE30\uC5D0 \uD45C\uC2DC\uB429\uB2C8\uB2E4";
+const EMPTY_PREVIEW_TEXT = "텍스트를 입력하면 여기에 표시됩니다";
 
 export function applyTextPosition() {
   elements.slideSafeZone.style.justifyContent = "center";
